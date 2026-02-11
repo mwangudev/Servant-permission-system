@@ -78,4 +78,8 @@ class User extends Authenticatable
     {
         return $this->role === 'employee';
     }
+
+    public function LeaveRequests(){
+        return $this->hasMany(LeaveRequest::class);
+    }
 }

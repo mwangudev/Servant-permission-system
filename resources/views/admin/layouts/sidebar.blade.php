@@ -38,14 +38,14 @@
                 <li class="nav-header">EMPLOYEE</li>
 
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('leaves.create')}}" class="nav-link">
                         <i class="nav-icon fas fa-plus-circle"></i>
                         <p>Apply Leave</p>
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{route('leaves.showmy')}}" class="nav-link">
                         <i class="nav-icon fas fa-list"></i>
                         <p>My Leave Requests</p>
                     </a>
