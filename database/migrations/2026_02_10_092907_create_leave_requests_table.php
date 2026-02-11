@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('request_type'); // e.g., sick, annual
             $table->date('start_date');
             $table->date('end_date');
-            $table->enum('status', ['submitted', 'pending', 'approved', 'rejected'])->default('submitted');
+            $table->enum('status', ['submitted', 'pending','on_progress', 'approved', 'rejected'])->default('submitted');
             $table->string('report_path')->nullable(); // optional file path
             $table->text('admin_remark')->nullable(); // admin comments
             $table->timestamps();

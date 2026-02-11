@@ -14,7 +14,10 @@ class LeaveRequestController extends Controller
      */
     public function index()
     {
-        //
+        $leaveRequest=LeaveRequest::all()
+        ->latest()
+        ->paginate();
+        return view('leave.index',compact('leaveRequest'));
     }
 
     /**
@@ -54,9 +57,10 @@ class LeaveRequestController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(LeaveRequest $leaveRequest)
+    public function show($id)
     {
-        //
+        $leaveRequest=LeaveRequest::findOrFail($id);
+        return view('leaves.show',compact('leaveRequest'));
     }
 
     //my leave

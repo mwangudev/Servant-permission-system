@@ -75,14 +75,14 @@
                     <li class="nav-header">ADMIN</li>
 
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{ route('users.index') }}" class="nav-link">
                             <i class="nav-icon fas fa-users"></i>
                             <p>Users</p>
                         </a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{ route('leaves.index') }}" class="nav-link">
                             <i class="nav-icon fas fa-calendar-alt"></i>
                             <p>All Leave Requests</p>
                         </a>
@@ -91,7 +91,7 @@
 
                 {{-- Logout --}}
                 <li class="nav-item mt-3">
-                    <a href="#" class="nav-link text-danger">
+                    <a href="{{route('logout')}}" class="nav-link text-danger">
                         <i class="nav-icon fas fa-sign-out-alt"></i>
                         <p>Logout</p>
                     </a>

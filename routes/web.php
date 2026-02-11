@@ -49,6 +49,8 @@ Route::get('myleaves/', [LeaveRequestController::class,'showMyLeave'])
 
     Route::resource('leaves', LeaveRequestController::class);
 
+    Route::resource('users', UserController::class);
+
 
     // Reports
     Route::resource('reports', ReportController::class);

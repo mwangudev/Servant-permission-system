@@ -91,37 +91,51 @@ class AuthController extends Controller
     /**
      * Show dashboard page for logged-in users.
      */
-    public function dashboard()
+public function dashboard()
 {
-    // Fetch leave requests with user relation to avoid N+1 problem
+    $userId = auth()->id();
+
+    // Fetch all leave requests with user relation
     $leaveRequests = \App\Models\LeaveRequest::with('user')->get();
 
-    // Group by request_type and count
+    // -------- User-specific stats --------
+    $submittedCount = $leaveRequests->where('status', 'submitted')->where('user_id', $userId)->count();
+    $pendingCount   = $leaveRequests->where('status', 'pending')->where('user_id', $userId)->count();
+    $approvedCount  = $leaveRequests->where('status', 'approved')->where('user_id', $userId)->count();
+    $rejectedCount  = $leaveRequests->where('status', 'rejected')->where('user_id', $userId)->count();
+
+    // -------- Admin / all users stats --------
+    $allSubmittedCount = $leaveRequests->where('status','submitted')->count();
+    $allPendingCount   = $leaveRequests->where('status','pending')->count();
+    $allApprovedCount  = $leaveRequests->where('status','approved')->count();
+    $allRejectedCount  = $leaveRequests->where('status','rejected')->count();
+
+    // -------- Latest pending requests (admin view or user view) --------
+    $latestPending = $leaveRequests
+        ->where('status', 'pending')
+        ->sortByDesc('created_at')
+        ->take(6);
+
+    // -------- Chart data (grouped by request_type) --------
     $chartData = $leaveRequests->groupBy('request_type')->map->count();
-
-    // Labels and values for chart
-    $chartLabels = $chartData->keys()->toArray();   // ['sick', 'annual', ...]
-    $chartValues = $chartData->values()->toArray(); // [5, 3, ...]
-
-    // Stats counts
-    $submittedCount = $leaveRequests->where('status', 'submitted')->count();
-    $pendingCount   = $leaveRequests->where('status', 'pending')->count();
-    $approvedCount  = $leaveRequests->where('status', 'approved')->count();
-    $rejectedCount  = $leaveRequests->where('status', 'rejected')->count();
-
-    // Latest pending requests
-    $pendingRequests = $leaveRequests->where('status', 'pending')->take(6);
+    $chartLabels = $chartData->keys()->toArray();
+    $chartValues = $chartData->values()->toArray();
 
     return view('admin.dashboard', compact(
-        'chartLabels',
-        'chartValues',
         'submittedCount',
         'pendingCount',
         'approvedCount',
         'rejectedCount',
-        'pendingRequests',
-        'leaveRequests' // Optional if you need all leave requests in the view
+        'allSubmittedCount',
+        'allPendingCount',
+        'allApprovedCount',
+        'allRejectedCount',
+        'latestPending',
+        'chartLabels',
+        'chartValues',
+        'leaveRequests' // optional, if you need full list in the view
     ));
 }
+
 
 }
