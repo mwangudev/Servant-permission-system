@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\LeaveRequest;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -92,80 +93,77 @@ class AuthController extends Controller
      */
     public function dashboard()
     {
-        $userId = Auth::id();
         $currentUser = Auth::user();
 
         // Fetch all leave requests with user relation
-        $leaveRequests = \App\Models\LeaveRequest::with('user')->get();
+        $leaveRequests = LeaveRequest::with('user')->get();
 
         /*
         |--------------------------------------------------------------------------
         | USER-SPECIFIC STATS
         |--------------------------------------------------------------------------
         */
-        $submittedCount = $leaveRequests
-            ->where('user_id', $userId)
-            ->where('status', 'submitted')
-            ->count();
+        $submittedCount = $leaveRequests->where('user_id', $currentUser->id)
+            ->where('status', 'submitted')->count();
 
-        $pendingCount = $leaveRequests
-            ->where('user_id', $userId)
-            ->whereIn('status', ['pending', 'on_progress'])
-            ->count();
+        $pendingCount = $leaveRequests->where('user_id', $currentUser->id)
+            ->whereIn('status', ['pending', 'on_progress'])->count();
 
-        $approvedCount = $leaveRequests
-            ->where('user_id', $userId)
-            ->where('status', 'approved')
-            ->count();
+        $approvedCount = $leaveRequests->where('user_id', $currentUser->id)
+            ->where('status', 'approved')->count();
 
-        $rejectedCount = $leaveRequests
-            ->where('user_id', $userId)
-            ->where('status', 'rejected')
-            ->count();
+        $rejectedCount = $leaveRequests->where('user_id', $currentUser->id)
+            ->where('status', 'rejected')->count();
 
-        $hodSubmittedCount = $leaveRequests
-            ->where('user_id', $userId)
-            ->where('status', 'submitted')
-            ->count();
+        /*
+        |--------------------------------------------------------------------------
+        | HOD DEPARTMENT STATS
+        |--------------------------------------------------------------------------
+        */
+        $hodSubmittedCount = 0;
+        $hodOnProgressCount = 0;
+        $hodApprovedCount = 0;
+        $hodRejectedCount = 0;
 
-        $hodOnProgressCount = $leaveRequests
-            ->where('user_id', $userId)
-            ->where('status', 'pending')
-            ->whereNotNull('hod_signature')
-            ->count();
+        if ($currentUser->role === 'hod' && $currentUser->department_id) {
+            // Get all employee IDs in this department
+            $departmentUserIds = User::where('department_id', $currentUser->department_id)
+                ->where('role', 'employee')
+                ->pluck('id');
 
-        $hodApprovedCount = $leaveRequests
-            ->where('user_id', $userId)
-            ->where('status', 'approved')
-            ->whereNotNull('admin_signature')
-            ->count();
+            $hodSubmittedCount = $leaveRequests
+                ->whereIn('user_id', $departmentUserIds)
+                ->where('status', 'submitted')
+                ->count();
 
-        $hodRejectedCount = $leaveRequests
-            ->where('user_id', $userId)
-            ->where('status', 'rejected')
-            ->whereNotNull('hod_remarks')
-            ->count();
+            $hodOnProgressCount = $leaveRequests
+                ->whereIn('user_id', $departmentUserIds)
+                ->where('status', 'pending')
+                ->whereNotNull('hod_signature')
+                ->count();
+
+            $hodApprovedCount = $leaveRequests
+                ->whereIn('user_id', $departmentUserIds)
+                ->where('status', 'approved')
+                ->whereNotNull('admin_signature')
+                ->count();
+
+            $hodRejectedCount = $leaveRequests
+                ->whereIn('user_id', $departmentUserIds)
+                ->where('status', 'rejected')
+                ->whereNotNull('hod_remarks')
+                ->count();
+        }
 
         /*
         |--------------------------------------------------------------------------
         | ADMIN / GLOBAL STATS
         |--------------------------------------------------------------------------
         */
-        $allSubmittedCount = $leaveRequests
-            ->where('status', 'submitted')
-            ->count();
-
-        $allPendingCount = $leaveRequests
-            ->whereIn('status', ['pending', 'on_progress'])
-            ->count();
-
-        $allApprovedCount = $leaveRequests
-            ->where('status', 'approved')
-            ->count();
-
-        $allRejectedCount = $leaveRequests
-            ->where('status', 'rejected')
-            ->count();
+        $allSubmittedCount = $leaveRequests->where('status', 'submitted')->count();
+        $allPendingCount = $leaveRequests->whereIn('status', ['pending', 'on_progress'])->count();
+        $allApprovedCount = $leaveRequests->where('status', 'approved')->count();
+        $allRejectedCount = $leaveRequests->where('status', 'rejected')->count();
 
         /*
         |--------------------------------------------------------------------------
@@ -173,13 +171,12 @@ class AuthController extends Controller
         |--------------------------------------------------------------------------
         */
         $recentPendingLeaves = collect();
-
         if (in_array($currentUser->role, ['admin', 'hod'])) {
             $recentPendingLeaves = $leaveRequests
                 ->whereIn('status', ['pending', 'on_progress'])
                 ->sortByDesc('created_at')
                 ->take(3)
-                ->values(); // reset keys
+                ->values();
         }
 
         /*
@@ -199,17 +196,17 @@ class AuthController extends Controller
             'pendingCount',
             'approvedCount',
             'rejectedCount',
-
+            'hodSubmittedCount',
+            'hodOnProgressCount',
+            'hodApprovedCount',
+            'hodRejectedCount',
             'allSubmittedCount',
             'allPendingCount',
             'allApprovedCount',
             'allRejectedCount',
-
             'recentPendingLeaves',
-
             'chartLabels',
             'chartValues',
-
             'leaveRequests'
         ));
     }

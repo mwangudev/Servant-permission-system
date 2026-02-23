@@ -17,11 +17,11 @@
 {{-- ================= HOD ================= --}}
 @if(auth()->user()->role === 'hod')
 <div class="row">
-    
+
     <div class="col-lg-3 col-12">
         <div class="small-box bg-info">
             <div class="inner">
-                <h3>{{ $hodsubmittedCount }}</h3>
+                <h3>{{ $hodSubmittedCount }}</h3>
                 <p>Pending request</p>
             </div>
             <div class="icon"><i class="fas fa-paper-plane"></i></div>
