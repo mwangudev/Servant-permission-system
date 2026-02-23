@@ -54,19 +54,48 @@
                 @endif
 
 
-                {{-- ================= HOD MENU (HOD ONLY) ================= --}}
-                @if(auth()->user()->role === 'hod')
-                    <li class="nav-header">HOD MENU</li>
+               {{-- ================= HOD MENU (HOD ONLY) ================= --}}
+@if(auth()->user()->role === 'hod')
+    <li class="nav-header">HOD MENU</li>
+    {{-- Department's Staff  --}}
+    <li class="nav-item">
+        <a href="{{ route('leaves.staff') }}" class="nav-link {{ request()->routeIs('leaves.staff') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-users"></i>
+            <p>Department Staff</p>
+        </a>
+    </li>
+    {{-- All Leave Requests --}}
+    <li class="nav-item">
+        <a href="{{ route('leaves.index') }}" class="nav-link {{ request()->routeIs('leaves.index') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-calendar-alt"></i>
+            <p>All Leave Requests</p>
+        </a>
+    </li>
 
-                    <li class="nav-item">
-                        <a href="{{ route('leaves.index') }}" class="nav-link {{ request()->routeIs('leaves.index') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-calendar-alt"></i>
-                            <p>Department Leave Requests</p>
-                        </a>
-                    </li>
-                @endif
+    {{-- Pending Leave Requests --}}
+    <li class="nav-item">
+        <a href="{{ route('leaves.pending') }}" class="nav-link {{ request()->routeIs('leaves.pending') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-hourglass-half"></i>
+            <p>Pending Leaves</p>
+        </a>
+    </li>
 
+    {{-- Approved Leave Requests --}}
+    <li class="nav-item">
+        <a href="{{ route('leaves.approved') }}" class="nav-link {{ request()->routeIs('leaves.approved') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-check-circle"></i>
+            <p>Approved Leaves</p>
+        </a>
+    </li>
 
+    {{-- Rejected Leave Requests --}}
+    <li class="nav-item">
+        <a href="{{ route('leaves.rejected') }}" class="nav-link {{ request()->routeIs('leaves.rejected') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-times-circle"></i>
+            <p>Rejected Leaves</p>
+        </a>
+    </li>
+@endif
                 {{-- ================= ADMIN MENU (ADMIN ONLY) ================= --}}
                 @if(auth()->user()->role === 'admin')
                     <li class="nav-header">ADMIN MENU</li>

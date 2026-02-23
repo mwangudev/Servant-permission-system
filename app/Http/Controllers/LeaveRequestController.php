@@ -41,6 +41,45 @@ class LeaveRequestController extends Controller
         return view('leaves.index', compact('leaveRequests'));
     }
 
+    public function staff()
+    {
+        $user = Auth::user();
+
+        if ($user->role !== 'hod') {
+            abort(403, 'Unauthorized');
+        }
+
+        $staff = User::where('department_id', $user->department_id)
+            ->where('role', 'employee')
+            ->get();
+
+        return view('leaves.staff', compact('staff'));
+    }
+
+     public function approved()
+    {
+        $user = Auth::user();
+
+        if ($user->role === 'admin') {
+            $leaveRequests = LeaveRequest::with('user.department')
+                ->where('status', 'approved')
+                ->latest()
+                ->get();
+        } elseif ($user->role === 'hod') {
+            $leaveRequests = LeaveRequest::whereHas('user', function ($query) use ($user) {
+                $query->where('department_id', $user->department_id);
+            })
+            ->with('user.department')
+            ->where('status', 'approved')
+            ->latest()
+            ->get();
+        } else {
+            abort(403, 'Unauthorized');
+        }
+
+        return view('leaves.approved', compact('leaveRequests'));
+    }
+
     /**
      * Show the form for creating a new leave request.
      */
