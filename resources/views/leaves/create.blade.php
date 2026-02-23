@@ -44,6 +44,11 @@
                             <input type="date" class="form-control" name="end_date" id="end_date" required>
                         </div>
 
+                        <div class="form-group">
+                            <label for="reason">Reason</label>
+                            <textarea class="form-control" name="reason" id="reason" rows="4" required></textarea>
+                        </div>
+
                         {{-- Report File --}}
                         <div class="form-group">
                             <label for="report_path">Upload Report (Optional)</label>
