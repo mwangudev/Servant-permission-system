@@ -144,6 +144,49 @@
             </div>
             @endif
 
+            {{-- Approve / Reject Buttons --}}
+            @if(in_array(auth()->user()->role, ['hod', 'admin']) && in_array($leaveRequest->status, ['submitted', 'pending', 'on_progress']))
+            <div class="row mb-3 mt-4 pt-3 border-top">
+                <div class="col-md-12">
+                    <form action="{{ route('leaves.approve', $leaveRequest->id) }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-success me-2">
+                            <i class="fas fa-check me-1"></i> Approve
+                        </button>
+                    </form>
+
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                        <i class="fas fa-times me-1"></i> Reject
+                    </button>
+                </div>
+            </div>
+
+            {{-- Reject Modal --}}
+            <div class="modal fade" id="rejectModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form action="{{ route('leaves.reject', $leaveRequest->id) }}" method="POST">
+                            @csrf
+                            <div class="modal-header">
+                                <h5 class="modal-title">Reject Leave Request</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="remarks" class="form-label">Remarks</label>
+                                    <textarea name="remarks" id="remarks" class="form-control" rows="3" required></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-danger">Reject</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             {{-- Admin Remark --}}
             @if($leaveRequest->admin_remark)
             <div class="row mb-3">
