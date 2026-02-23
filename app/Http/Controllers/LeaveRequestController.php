@@ -61,6 +61,7 @@ class LeaveRequestController extends Controller
             'end_date'     => 'required|date|after_or_equal:start_date',
             'report_path'  => 'nullable|file|mimes:pdf,jpg,png|max:2048',
             'reasons'      => 'nullable|string',
+            'destination'    => 'nullable|string',
         ], [
             'start_date.today_or_future' => 'Leave start date cannot be in the past. Please select today or a future date.',
             'end_date.after_or_equal' => 'End date must be the same as or after the start date.',
