@@ -25,6 +25,7 @@ class LeaveRequest extends Model
         'admin_signature',
         'admin_signed_at',
         'admin_remarks',
+        'reasons',
     ];
 
     /**
