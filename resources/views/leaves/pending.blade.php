@@ -1,10 +1,10 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Reject Leave Request')
-@section('page-title', 'Reject Leave Request')
+@section('title', ' Pending Leave Request')
+@section('page-title', 'Pending Leave Request')
 @section('content')
 <div class="container-fluid">
-   //with list table
+
     <div class="card shadow-sm border-0">
         <div class="card-body">
 
@@ -48,7 +48,7 @@
                                 </small>
                             </td>
                             <td>
-                                <span class="badge bg-danger px-2 py-1">Rejected</span>
+                                <span class="badge bg-warning px-2 py-1">{{ ucfirst($leave->status) }}</span>
                             </td>
                             <td>
                                 {{-- <a href="{{ route('leaves.show', $leave->id) }}" class="
