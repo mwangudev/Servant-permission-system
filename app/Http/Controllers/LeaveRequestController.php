@@ -76,7 +76,7 @@ class LeaveRequestController extends Controller
         $user = Auth::user();
 
         $query = LeaveRequest::with('user.department')
-            ->whereIn('status', ['pending', 'on_progress']);
+            ->where('status', 'submitted');
 
         if ($user->role === 'hod') {
             $query->whereHas('user', fn($q) => $q->where('department_id', $user->department_id));

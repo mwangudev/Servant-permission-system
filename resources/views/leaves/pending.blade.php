@@ -51,13 +51,13 @@
                                 <span class="badge bg-danger px-2 py-1">pending</span>
                             </td>
                             <td>
-                                {{-- <a href="{{ route('leaves.show', $leave->id) }}" class="
+                                <a href="{{ route('leaves.show', $leave->id) }}" class="
                                     btn btn-info btn-sm
                                     @if($leave->admin_signature) me-2 @endif
                                 ">
                                     <i class="fas fa-eye
                                         me-1"></i> View
-                                </a> --}}
+                                </a>
                                 @if($leave->admin_signature)
                                     <a href="{{ route('leaves.downloadPDF', $leave->id) }}" class="btn btn-success btn-sm">
                                         <i class="fas fa-download me-1"></i> Download PDF

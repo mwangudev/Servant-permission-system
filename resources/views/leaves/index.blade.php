@@ -16,9 +16,6 @@
                 </small>
             @endif
         </div>
-        <a href="{{ route('leaves.create') }}" class="btn btn-primary btn-sm">
-            <i class="fas fa-plus me-1"></i> Apply Leave
-        </a>
     </div>
 
     {{-- Info Badge --}}
