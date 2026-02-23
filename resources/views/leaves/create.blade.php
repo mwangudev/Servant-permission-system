@@ -48,11 +48,7 @@
 
                         <div class="form-group">
                             <label for="destination">Destination</label>
-<<<<<<< HEAD
                             <input type="text" class="form-control" name="destination" id="destination" placeholder="Where will you be during your leave?" required>
-=======
-                            <input type="text" class="form-control" name="destination" id="destination" value="{{ old('destination') }}" required>
->>>>>>> 5ee480650e77bffba7bf76b3f66156c011b23a16
                         </div>
 
                         {{-- Reason --}}

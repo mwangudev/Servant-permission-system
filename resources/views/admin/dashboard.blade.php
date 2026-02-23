@@ -29,7 +29,52 @@
             </a>
         </div>
     </div>
+
+    <div class="col-lg-3 col-12">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>{{ $submittedCount }}</h3>
+                <p>Submitted Requests</p>
+            </div>
+            <div class="icon"><i class="fas fa-paper-plane"></i></div>
+            <a href="{{ route('leaves.index') }}" class="small-box-footer">
+                View Info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+
+    <div class="col-lg-3 col-12">
+        <div class="small-box bg-warning">
+            <div class="inner">
+                <h3>{{ $pendingCount }}</h3>
+                <p>Pending Requests</p>
+            </div>
+            <div class="icon"><i class="fas fa-clock"></i></div>
+            <a href="{{ route('leaves.index') }}" class="small-box-footer">
+                View Info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+
+        <div class="col-lg-3 col-12">
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3>{{ $rejectedCount }}</h3>
+                    <p>Rejected Requests</p>
+                </div>
+                <div class="icon"><i class="fas fa-times-circle"></i></div>
+                <a href="{{ route('leaves.index') }}" class="small-box-footer">
+                    View Info <i class="fas fa-arrow-circle-right"></i>
+                </a>
+            </div>
+        </div>
+
+
 </div>
+
+
 @endif
 
 
