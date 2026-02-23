@@ -171,14 +171,14 @@ class LeaveRequestController extends Controller
      */
     public function show($id)
     {
-        $leave = LeaveRequest::with('user.department')->findOrFail($id);
+        $leaveRequest = LeaveRequest::with('user.department')->findOrFail($id);
         $user = Auth::user();
 
-        if (!$leave->user) abort(404, 'Associated user not found.');
-        if ($user->id !== $leave->user_id && $user->role === 'employee') abort(403);
-        if ($user->role === 'hod' && $user->department_id !== $leave->user->department_id) abort(403);
+        if (!$leaveRequest->user) abort(404, 'Associated user not found.');
+        if ($user->id !== $leaveRequest->user_id && $user->role === 'employee') abort(403);
+        if ($user->role === 'hod' && $user->department_id !== $leaveRequest->user->department_id) abort(403);
 
-        return view('leaves.show', compact('leave'));
+        return view('leaves.show', compact('leaveRequest'));
     }
 
     /**
