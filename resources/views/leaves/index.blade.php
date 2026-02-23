@@ -125,13 +125,6 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
 
-                                    @if(auth()->user()->role === 'hod' || auth()->user()->role === 'admin')
-                                        <a href="{{ route('leaves.edit', $leave->id) }}"
-                                           class="btn btn-sm btn-outline-warning" title="Approve/Reject">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    @endif
-
                                     @if(auth()->user()->id === $leave->user_id || auth()->user()->role === 'admin')
                                         <form action="{{ route('leaves.destroy', $leave->id) }}"
                                               method="POST" style="display: inline;">

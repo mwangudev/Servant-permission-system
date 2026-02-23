@@ -350,4 +350,42 @@ class LeaveRequestController extends Controller
 
         return $pdf->Output('leave_request_'.$leave->id.'.pdf','D');
     }
+
+    public function approve($id)
+    {
+        $leave = LeaveRequest::with('user.department')->findOrFail($id);
+        $user = Auth::user();
+
+        if (!$leave->user) abort(404);
+        if ($user->role === 'hod' && $user->department_id !== $leave->user->department_id) {
+            return back()->with('error','Cannot approve leaves outside your department.');
+        }
+
+        $leave->update([
+            'status' => 'approved',
+            'admin_signature' => $user->name,
+            'admin_signed_at' => now(),
+        ]);
+
+        return redirect()->route('leaves.show', $leave->id)->with('success','Leave request approved.');
+    }
+
+    public function reject($id)
+    {
+        $leave = LeaveRequest::with('user.department')->findOrFail($id);
+        $user = Auth::user();
+
+        if (!$leave->user) abort(404);
+        if ($user->role === 'hod' && $user->department_id !== $leave->user->department_id) {
+            return back()->with('error','Cannot reject leaves outside your department.');
+        }
+
+        $leave->update([
+            'status' => 'rejected',
+            'admin_signature' => $user->name,
+            'admin_signed_at' => now(),
+        ]);
+
+        return redirect()->route('leaves.show', $leave->id)->with('success','Leave request rejected.');
+    }
 }
