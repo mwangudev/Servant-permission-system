@@ -46,7 +46,7 @@
 
                         <div class="form-group">
                             <label for="reason">Reason</label>
-                            <textarea class="form-control" name="reason" id="reason" rows="4" required></textarea>
+                            <textarea class="form-control" name="reasons" id="reason" rows="4" required></textarea>
                         </div>
 
                         {{-- Report File --}}
