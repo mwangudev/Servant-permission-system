@@ -24,7 +24,7 @@
                         <div class="form-group">
                             <label for="request_type">Leave Type</label>
                             <select class="form-control" name="request_type" id="request_type" required>
-                                <option value="">Select Leave Type</option>
+                                <option value="{{ old('request_type') ?? '' }}">{{ old('request_type') ?? 'Select Leave Type' }}</option>
                                 <option value="annual">Annual</option>
                                 <option value="sick">Sick</option>
                                 <option value="maternity">Maternity</option>
@@ -35,27 +35,27 @@
                         {{-- Start Date --}}
                         <div class="form-group">
                             <label for="start_date">Start Date</label>
-                            <input type="date" class="form-control" name="start_date" id="start_date" required>
+                            <input type="date" class="form-control" name="start_date" id="start_date" value="{{ old('start_date') }}" required>
                         </div>
 
                         {{-- End Date --}}
                         <div class="form-group">
                             <label for="end_date">End Date</label>
-                            <input type="date" class="form-control" name="end_date" id="end_date" required>
+                            <input type="date" class="form-control" name="end_date" id="end_date"  value="{{ old('end_date') }}" required>
                         </div>
 
                         {{-- Destination --}}
 
                         <div class="form-group">
                             <label for="destination">Destination</label>
-                            <input type="text" class="form-control" name="destination" id="destination" required>
+                            <input type="text" class="form-control" name="destination" id="destination" value="{{ old('destination') }}" required>
                         </div>
 
                         {{-- Reason --}}
 
                         <div class="form-group">
                             <label for="reason">Reason</label>
-                            <textarea class="form-control" name="reasons" id="reason" rows="4" required></textarea>
+                            <textarea class="form-control" name="reasons" id="reason" rows="4" value="{{ old('reasons') }}" required></textarea>
                         </div>
 
                         {{-- Report File --}}
