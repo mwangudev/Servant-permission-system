@@ -34,34 +34,38 @@
                     </a>
                 </li>
 
-                {{-- ================= EMPLOYEE MENU (ALL ROLES) ================= --}}
-                <li class="nav-header">EMPLOYEE MENU</li>
+                {{-- ================= EMPLOYEE MENU (EMPLOYEE ONLY) ================= --}}
+                @if(auth()->user()->role === 'employee')
+                    <li class="nav-header">EMPLOYEE MENU</li>
 
-                <li class="nav-item">
-                    <a href="{{ route('leaves.create') }}" class="nav-link {{ request()->routeIs('leaves.create') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-plus-circle"></i>
-                        <p>Apply Leave</p>
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a href="{{ route('leaves.create') }}" class="nav-link {{ request()->routeIs('leaves.create') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-plus-circle"></i>
+                            <p>Apply Leave</p>
+                        </a>
+                    </li>
 
-                <li class="nav-item">
-                    <a href="{{ route('leaves.showmy') }}" class="nav-link {{ request()->routeIs('leaves.showmy') ? 'active' : '' }}">
-                        <i class="nav-icon fas fa-list"></i>
-                        <p>My Leave Requests</p>
-                    </a>
-                </li>
+                    <li class="nav-item">
+                        <a href="{{ route('leaves.showmy') }}" class="nav-link {{ request()->routeIs('leaves.showmy') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-list"></i>
+                            <p>My Leave Requests</p>
+                        </a>
+                    </li>
+                @endif
 
-                {{-- ================= HOD MENU (HOD + ADMIN) ================= --}}
-                @if(auth()->user()->role === 'hod' || auth()->user()->role === 'admin')
+
+                {{-- ================= HOD MENU (HOD ONLY) ================= --}}
+                @if(auth()->user()->role === 'hod')
                     <li class="nav-header">HOD MENU</li>
 
                     <li class="nav-item">
                         <a href="{{ route('leaves.index') }}" class="nav-link {{ request()->routeIs('leaves.index') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-calendar-alt"></i>
-                            <p>All Leave Requests</p>
+                            <p>Department Leave Requests</p>
                         </a>
                     </li>
                 @endif
+
 
                 {{-- ================= ADMIN MENU (ADMIN ONLY) ================= --}}
                 @if(auth()->user()->role === 'admin')
