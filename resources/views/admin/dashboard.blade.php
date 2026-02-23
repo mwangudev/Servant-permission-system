@@ -17,24 +17,12 @@
 {{-- ================= HOD ================= --}}
 @if(auth()->user()->role === 'hod')
 <div class="row">
-    <div class="col-lg-3 col-12">
-        <div class="small-box bg-primary">
-            <div class="inner">
-                <h3>{{ $hodDepartmentUserCount }}</h3>
-                <p>Department Staff</p>
-            </div>
-            <div class="icon"><i class="fas fa-users"></i></div>
-            <a href="{{ route('leaves.index') }}" class="small-box-footer">
-                View Info <i class="fas fa-arrow-circle-right"></i>
-            </a>
-        </div>
-    </div>
-
+    
     <div class="col-lg-3 col-12">
         <div class="small-box bg-info">
             <div class="inner">
-                <h3>{{ $submittedCount }}</h3>
-                <p>Submitted Requests</p>
+                <h3>{{ $hodsubmittedCount }}</h3>
+                <p>Pending request</p>
             </div>
             <div class="icon"><i class="fas fa-paper-plane"></i></div>
             <a href="{{ route('leaves.index') }}" class="small-box-footer">
@@ -47,10 +35,24 @@
     <div class="col-lg-3 col-12">
         <div class="small-box bg-warning">
             <div class="inner">
-                <h3>{{ $pendingCount }}</h3>
-                <p>Pending Requests</p>
+                <h3>{{ $hodOnProgressCount }}</h3>
+                <p>On_progress request</p>
             </div>
             <div class="icon"><i class="fas fa-clock"></i></div>
+            <a href="{{ route('leaves.index') }}" class="small-box-footer">
+                View Info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+
+
+    <div class="col-lg-3 col-12">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3>{{ $hodApprovedCount }}</h3>
+                <p>Approved Requests</p>
+            </div>
+            <div class="icon"><i class="fas fa-check-circle"></i></div>
             <a href="{{ route('leaves.index') }}" class="small-box-footer">
                 View Info <i class="fas fa-arrow-circle-right"></i>
             </a>
@@ -61,7 +63,7 @@
         <div class="col-lg-3 col-12">
             <div class="small-box bg-danger">
                 <div class="inner">
-                    <h3>{{ $rejectedCount }}</h3>
+                    <h3>{{ $hodRejectedCount }}</h3>
                     <p>Rejected Requests</p>
                 </div>
                 <div class="icon"><i class="fas fa-times-circle"></i></div>
