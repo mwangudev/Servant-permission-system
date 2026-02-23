@@ -48,7 +48,7 @@
 
                         <div class="form-group">
                             <label for="destination">Destination</label>
-                            <input type="text" class="form-control" name="destination" id="destination" required>
+                            <input type="text" class="form-control" name="destination" id="destination" placeholder="Where will you be during your leave?" required>
                         </div>
 
                         {{-- Reason --}}
