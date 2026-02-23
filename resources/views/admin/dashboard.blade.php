@@ -9,7 +9,7 @@
 {{-- ================= EMPLOYEE ================= --}}
 @if(auth()->user()->role === 'employee')
 <div class="row">
-    @include('admin.partials.employee-cards')
+    @include('admin.layouts.employee-cards')
 </div>
 @endif
 
