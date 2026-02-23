@@ -44,6 +44,15 @@
                             <input type="date" class="form-control" name="end_date" id="end_date" required>
                         </div>
 
+                        {{-- Destination --}}
+
+                        <div class="form-group">
+                            <label for="destination">Destination</label>
+                            <input type="text" class="form-control" name="destination" id="destination" required>
+                        </div>
+
+                        {{-- Reason --}}
+
                         <div class="form-group">
                             <label for="reason">Reason</label>
                             <textarea class="form-control" name="reasons" id="reason" rows="4" required></textarea>
