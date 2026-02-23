@@ -89,6 +89,67 @@ class LeaveRequestController extends Controller
         return view('leaves.create');
     }
 
+    public function approved(){
+        $user = Auth::user();
+        if ($user->role === 'admin') {
+            $leaveRequests = LeaveRequest::with('user.department')
+                ->where('status', 'approved')
+                ->latest()
+                ->get();
+        } elseif ($user->role === 'hod') {
+            $leaveRequests = LeaveRequest::whereHas('user', function ($query) use ($user) {
+                $query->where('department_id', $user->department_id);
+            })
+            ->with('user.department')
+            ->where('status', 'approved')
+            ->latest()
+            ->get();
+        } else {
+            abort(403, 'Unauthorized');
+        }
+    }
+
+    public function pending(){
+        $user = Auth::user();
+        if ($user->role === 'admin') {
+            $leaveRequests = LeaveRequest::with('user.department')
+                ->whereIn('status', ['pending', 'on_progress'])
+                ->latest()
+                ->get();
+            return view('leaves.pending', compact(''));
+        } elseif ($user->role === 'hod') {
+            $leaveRequests = LeaveRequest::whereHas('user', function ($query) use ($user) {
+                $query->where('department_id', $user->department_id);
+            })
+            ->with('user.department')
+            ->whereIn('status', ['pending', 'on_progress'])
+            ->latest()
+            ->get();
+        } else {
+            abort(403, 'Unauthorized');
+        }
+    }
+
+    public function approved(){
+        $user = Auth::user();
+        if ($user->role === 'admin') {
+            $leaveRequests = LeaveRequest::with('user.department')
+                ->where('status', 'approved')
+                ->latest()
+                ->get();
+        } elseif ($user->role === 'hod') {
+            $leaveRequests = LeaveRequest::whereHas('user', function ($query) use ($user) {
+                $query->where('department_id', $user->department_id);
+            })
+            ->with('user.department')
+            ->where('status', 'approved')
+            ->latest()
+            ->get();
+        } else {
+            abort(403, 'Unauthorized');
+        }
+    }
+
     /**
      * Store a newly created leave request in storage.
      */
