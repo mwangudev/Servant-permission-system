@@ -41,6 +41,7 @@
                         <th>Employee</th>
                         <th>Department</th>
                         <th>Leave Type</th>
+                        <th>Reason for Leave</th>
                         <th>Duration</th>
                         <th>Status</th>
                         <th width="200">Actions</th>
@@ -66,6 +67,11 @@
 
                             <td>
                                 {{ ucfirst(str_replace('_', ' ', $leave->request_type)) }}
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ $leave->reasons ?? 'No reason provided' }}
+                                </small>
                             </td>
 
                             <td>
