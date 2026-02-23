@@ -131,7 +131,6 @@ class AuthController extends Controller
         $hodOnProgressCount = $leaveRequests
             ->where('user_id', $userId)
             ->where('status', 'pending')
-            ->whereNotNull('hod_signature')
             ->count();
 
         $hodApprovedCount = $leaveRequests
@@ -209,8 +208,13 @@ class AuthController extends Controller
 
             'chartLabels',
             'chartValues',
+            'hodSubmittedCount',
+            'hodOnProgressCount',
+            'hodApprovedCount',
+            'hodRejectedCount',
 
             'leaveRequests'
+
         ));
     }
 }

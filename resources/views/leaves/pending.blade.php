@@ -48,7 +48,7 @@
                                 </small>
                             </td>
                             <td>
-                                <span class="badge bg-warning px-2 py-1">{{ ucfirst($leave->status) }}</span>
+                                <span class="badge bg-danger px-2 py-1">pending</span>
                             </td>
                             <td>
                                 {{-- <a href="{{ route('leaves.show', $leave->id) }}" class="
