@@ -46,6 +46,7 @@ class LeaveRequestController extends Controller
      */
     public function create()
     {
+
         return view('leaves.create');
     }
 
@@ -63,6 +64,17 @@ class LeaveRequestController extends Controller
             'start_date.today_or_future' => 'Leave start date cannot be in the past. Please select today or a future date.',
             'end_date.after_or_equal' => 'End date must be the same as or after the start date.',
         ]);
+        //days of leave must no exceed 14 days
+
+        $startDate = Carbon::parse($validated['start_date']);
+        $endDate = Carbon::parse($validated['end_date']);
+        $days = $startDate->diffInDays($endDate) + 1;
+
+        if ($days > 14) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Leave request exceeds 14 days. Please select a shorter leave period.');
+        }
 
         $user = Auth::user();
 
