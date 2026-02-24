@@ -24,17 +24,43 @@
         height: auto;
     }
 
-    #signature-pad {
-        border: 1px solid #ced4da;
-        border-radius: 5px;
-        width: 100%;
-        height: 200px;
-    }
+    /* Nimetoa CSS ya zamani ya #signature-pad hapa kwani sasa tunatumia Wrapper */
 </style>
 @endsection
 
 @section('content')
 <div class="container-fluid">
+
+
+    {{-- KODI YA KUNASA NA KUONYESHA ERRORS NA SUCCESS MESSAGES --}}
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show mt-1" role="alert">
+            <strong>Errors:</strong>
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            <i class="fas fa-exclamation-triangle me-1"></i> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+    {{-- MWISHO WA KODI YA ERRORS --}}
+
+    {{-- Back Button yako inaendelea hapa chini... --}}
 
     {{-- Back Button --}}
     <div class="mb-3">
@@ -204,21 +230,26 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <label class="form-label">Draw Signature</label>
-                    <canvas id="signature-pad"></canvas>
+                    <label class="form-label fw-bold text-primary">Draw Signature Here</label>
+
+                    {{-- WRAPPER MPYA YENYE VIPIMO SAHIHI --}}
+                    <div style="position: relative; width: 100%; height: 200px; border: 2px dashed #0d6efd; background-color: #f8f9fa; border-radius: 8px; touch-action: none; overflow: hidden;">
+                        <canvas id="signature-pad" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair;"></canvas>
+                    </div>
                     <input type="hidden" name="digital_signature" id="digital_signature">
 
                     <div class="mt-3">
-                        <button type="button" class="btn btn-sm btn-secondary"
-                                id="clear-signature">Clear</button>
+                        <button type="button" class="btn btn-sm btn-danger" id="clear-signature">
+                            <i class="fas fa-eraser me-1"></i> Clear Signature
+                        </button>
                     </div>
 
-                    <div class="mb-3 mt-3">
-                        <label for="hod_remarks" class="form-label">Remarks (optional)</label>
-                        <textarea name="hod_remarks"
-                                  id="hod_remarks"
+                    <div class="mb-3 mt-4">
+                        <label for="hod_remarks" class="form-label fw-bold">Remarks (optional)</label>
+                        <textarea name="remarks"
+                                  id="remarks"
                                   class="form-control"
-                                  rows="3"></textarea>
+                                  rows="3" placeholder="Write any comments here..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -227,7 +258,7 @@
                             data-bs-dismiss="modal">Cancel</button>
                     <button type="submit"
                             class="btn btn-success"
-                            id="submit-approval">Approve & Set Pending</button>
+                            id="submit-approval">Approve</button>
                 </div>
             </form>
         </div>
@@ -256,85 +287,114 @@
                             class="btn btn-secondary"
                             data-bs-dismiss="modal">Cancel</button>
                     <button type="submit"
-                            class="btn btn-danger">Reject</button>
+                       public function approve(Request $request, $id)
+    {
+        $Authuser = auth()->user();
+
+
+            $request->validate([
+                'digital_signature' => 'required|string',
+                'remarks' => 'nullable|string',
+
+            ]);
+
+
+
+
+        // 2. Tafuta hiyo likizo kwenye database
+        $leaveRequest = LeaveRequest::findOrFail($id);
+
+        // 3. Pata picha ya saini kutoka kwenye Base64 Text
+        $signatureData = $request->input('digital_signature');
+        $image_parts = explode(";base64,", $signatureData);
+        $image_base64 = base64_decode($image_parts[1]);
+
+        $leaveRequest->status = 'approved';
+
+       // 3. HIFADHI PICHA (Kama kawaida)
+    $leaveRequest = LeaveRequest::findOrFail($id);
+    $fileName = 'signature_' . $Authuser . '_' . $leaveRequest->id . '_' . time() . '.png';
+    $filePath = 'signatures/leaves/' . $fileName;
+    Storage::disk('public')->put($filePath, $image_base64);
+
+    // 4. WEKA KWENYE DATABASE KULINGANA NA CHEO
+    if ($Authuser === 'hod') {
+        $leaveRequest->hod_signature = 'storage/' . $filePath;
+        $leaveRequest->hod_remarks = $request->remarks;
+        $leaveRequest->status = 'pending'; // Inasubiri Admin
+    } elseif ($Authuser === 'admin') {
+        $leaveRequest->admin_signature = 'storage/' . $filePath;
+        $leaveRequest->admin_remarks = $request->remarks; // Kama unayo DB
+        $leaveRequest->status = 'approved'; // Imekamilika
+    }
+
+        $leaveRequest->save();
+
+        // 7. Rudisha ujumbe wa pongezi
+        return redirect()->back()->with('success', 'Leave request imepitishwa na kusainiwa kikamilifu!');
+    }     class="btn btn-danger">Reject</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-@section('js')
-<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+
 <script>
-    (function() {
-        let signaturePad = null;
+    document.addEventListener("DOMContentLoaded", function() {
+        var canvas = document.getElementById('signature-pad');
+        var signaturePad;
+        var approveModalEl = document.getElementById('approveModal');
 
-        function resizeCanvas(canvas) {
-            const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            const width = canvas.offsetWidth;
-            const height = canvas.offsetHeight || 200;
-            canvas.width = Math.floor(width * ratio);
-            canvas.height = Math.floor(height * ratio);
-            const ctx = canvas.getContext('2d');
-            ctx.scale(ratio, ratio);
-        }
-
-        function initSignaturePad() {
-            const canvas = document.getElementById('signature-pad');
-            if (!canvas) return;
-            // Ensure canvas visible size
-            canvas.style.width = '100%';
-            canvas.style.height = '200px';
-            resizeCanvas(canvas);
-            signaturePad = new SignaturePad(canvas, {
-                backgroundColor: 'rgba(255,255,255,0)',
-                penColor: 'rgb(0,0,0)'
-            });
-        }
-
-        const approveModalEl = document.getElementById('approveModal');
         if (approveModalEl) {
             approveModalEl.addEventListener('shown.bs.modal', function () {
-                // init after modal is visible to get proper sizes
-                initSignaturePad();
+                // TUNAWEKA DELAY YA SEKUNDE 0.2 ILI MODAL ITULIE KWANZA
+                setTimeout(function() {
+                    var ratio = Math.max(window.devicePixelRatio || 1, 1);
+                    var wrapper = canvas.parentElement; // Tunachukua ukubwa wa kiboksi cha nje
+
+                    canvas.width = wrapper.offsetWidth * ratio;
+                    canvas.height = wrapper.offsetHeight * ratio;
+                    canvas.getContext("2d").scale(ratio, ratio);
+
+                    if (!signaturePad) {
+                        signaturePad = new SignaturePad(canvas, {
+                            backgroundColor: 'rgba(255, 255, 255, 0)', // Background wazi
+                            penColor: 'rgb(0, 0, 0)', // Wino mweusi
+                            minWidth: 1.5,
+                            maxWidth: 3.0
+                        });
+                    } else {
+                        signaturePad.clear(); // Futa kama kuna makosa ya awali
+                    }
+                }, 200); // Miliseconds 200 ndio uchawi wenyewe
             });
 
-            approveModalEl.addEventListener('hidden.bs.modal', function () {
-                if (signaturePad) signaturePad.clear();
-            });
+            // Futa (Clear) Button
+            var clearBtn = document.getElementById('clear-signature');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    if (signaturePad) signaturePad.clear();
+                });
+            }
+
+            // Wakati wa kutuma fomu
+            var approveForm = document.querySelector('#approveModal form');
+            if (approveForm) {
+                approveForm.addEventListener('submit', function (e) {
+                    if (!signaturePad || signaturePad.isEmpty()) {
+                        e.preventDefault();
+                        alert('⚠️ Tafadhali weka saini yako kwanza.');
+                    } else {
+                        // Badilisha mchoro uwe picha na iweke kwenye input
+                        document.getElementById('digital_signature').value = signaturePad.toDataURL('image/png');
+                    }
+                });
+            }
         }
-
-        const clearBtn = document.getElementById('clear-signature');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', function () {
-                if (signaturePad) signaturePad.clear();
-            });
-        }
-
-        // On form submit, validate and write data URL to hidden input
-        const approveForm = document.querySelector('#approveModal form');
-        if (approveForm) {
-            approveForm.addEventListener('submit', function (e) {
-                const hiddenInput = document.getElementById('digital_signature');
-                if (!signaturePad || signaturePad.isEmpty()) {
-                    e.preventDefault();
-                    alert('Please provide a signature before submitting.');
-                    return;
-                }
-                // set PNG data URL
-                hiddenInput.value = signaturePad.toDataURL('image/png');
-            });
-        }
-
-        // Preserve strokes on resize
-        window.addEventListener('resize', function () {
-            const canvas = document.getElementById('signature-pad');
-            if (!canvas || !signaturePad) return;
-            const data = signaturePad.toData();
-            resizeCanvas(canvas);
-            signaturePad.clear();
-            signaturePad.fromData(data);
-        });
-    })();
+    });
 </script>
 @endsection
+

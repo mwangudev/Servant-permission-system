@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use TCPDF;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class LeaveRequestController extends Controller
 {
@@ -351,41 +352,79 @@ class LeaveRequestController extends Controller
         return $pdf->Output('leave_request_'.$leave->id.'.pdf','D');
     }
 
-    public function approve($id)
+
+    //Admin Or Hod approve and reject functions
+
+    /**
+     * Method ya Ku-Approve Likizo
+     */
+    public function approve(Request $request, $id)
     {
-        $leave = LeaveRequest::with('user.department')->findOrFail($id);
-        $user = Auth::user();
+        // 1. Tambua nani yupo hewani na cheo chake
+        $Authuser = auth()->user();
+        $userRole = $Authuser->role; // 🟢 TUNACHUKUA CHEO (ROLE) HAPA
 
-        if (!$leave->user) abort(404);
-        if ($user->role === 'hod' && $user->department_id !== $leave->user->department_id) {
-            return back()->with('error','Cannot approve leaves outside your department.');
-        }
-
-        $leave->update([
-            'status' => 'approved',
-            'admin_signature' => $user->name,
-            'admin_signed_at' => now(),
+        $request->validate([
+            'digital_signature' => 'required|string',
+            'remarks' => 'nullable|string',
         ]);
 
-        return redirect()->route('leaves.show', $leave->id)->with('success','Leave request approved.');
+        // 2. Tafuta hiyo likizo kwenye database (MARA MOJA TU)
+        $leaveRequest = LeaveRequest::findOrFail($id);
+
+        // 3. Pata picha ya saini kutoka kwenye Base64 Text
+        $signatureData = $request->input('digital_signature');
+        $image_parts = explode(";base64,", $signatureData);
+        $image_base64 = base64_decode($image_parts[1]);
+
+        // 4. HIFADHI PICHA (Tunatumia $userRole kwenye jina la faili, sio $Authuser)
+        $fileName = 'signature_' . $userRole . '_' . $leaveRequest->id . '_' . time() . '.png';
+        $filePath = 'signatures/leaves/' . $fileName;
+        Storage::disk('public')->put($filePath, $image_base64);
+
+        // 5. WEKA KWENYE DATABASE KULINGANA NA CHEO ($userRole)
+        if ($userRole === 'hod') {
+            $leaveRequest->hod_signature = 'storage/' . $filePath;
+            $leaveRequest->hod_remarks = $request->remarks;
+            $leaveRequest->status = 'pending'; // Inasubiri Admin
+        } elseif ($userRole === 'admin') {
+            $leaveRequest->admin_signature = 'storage/' . $filePath;
+            $leaveRequest->admin_remarks = $request->remarks;
+            $leaveRequest->status = 'approved'; // Imekamilika
+        }
+
+        // 6. Save sasa kwenye Database
+        $leaveRequest->save();
+
+        // 7. Rudisha ujumbe wa pongezi
+        return redirect()->back()->with('success', 'Leave request imepitishwa na kusainiwa kikamilifu!');
     }
 
-    public function reject($id)
+    /**
+     * Method ya Ku-Reject Likizo
+     */
+    public function reject(Request $request, $id)
     {
-        $leave = LeaveRequest::with('user.department')->findOrFail($id);
-        $user = Auth::user();
-
-        if (!$leave->user) abort(404);
-        if ($user->role === 'hod' && $user->department_id !== $leave->user->department_id) {
-            return back()->with('error','Cannot reject leaves outside your department.');
-        }
-
-        $leave->update([
-            'status' => 'rejected',
-            'admin_signature' => $user->name,
-            'admin_signed_at' => now(),
+        // 1. Hakikisha sababu ya kukataa (remarks) imeandikwa
+        $request->validate([
+            'remarks' => 'required|string',
         ]);
 
-        return redirect()->route('leaves.show', $leave->id)->with('success','Leave request rejected.');
+        $leaveRequest = LeaveRequest::findOrFail($id);
+
+        // 2. Badilisha status iwe 'rejected'
+        $leaveRequest->status = 'rejected';
+
+        // 3. Hifadhi sababu kulingana na role (Kama una column tofauti za remarks)
+        if (auth()->user()->role === 'hod') {
+            $leaveRequest->hod_remarks = $request->remarks;
+        } else {
+            // Kama ni Admin
+             $leaveRequest->admin_remarks = $request->remarks;
+        }
+
+        $leaveRequest->save();
+
+        return redirect()->back()->with('error', 'Leave request is rejected.');
     }
 }
