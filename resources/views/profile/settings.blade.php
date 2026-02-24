@@ -6,7 +6,7 @@
 @section('content')
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-md-7 col-lg-6">
+        <div class="col-md-6 col-lg-12">
             <div class="card shadow rounded-4 border-0">
                 <div class="card-header bg-gradient-secondary text-white rounded-top-4">
                     <h4 class="mb-0"><i class="fas fa-cog me-2"></i> Account Settings</h4>
@@ -24,11 +24,19 @@
                                 <input type="file" name="profile_image" class="form-control form-control-sm mx-auto" style="max-width: 250px;">
                             </div>
                         </div>
+                            <div class="mb-3">
+                                <label class="form-label">First Name</label>
+                                <input type="text" name="firstname" class="form-control rounded-pill" value="{{ auth()->user()->firstname }}" required>
+                            </div>
                         <div class="mb-3">
-                            <label class="form-label">Full Name</label>
-                            <input type="text" name="full_name" class="form-control rounded-pill" value="{{ auth()->user()->full_name }}" required>
+                            <label class="form-label">Middle Name</label>
+                            <input type="text" name="middlename" class="form-control rounded-pill" value="{{ auth()->user()->middlename }}" required>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="lastname" class="form-control rounded-pill" value="{{ auth()->user()->lastname }}" required>
+                        </div>
+                        <div class="mb-3"></div>
                             <label class="form-label">Email</label>
                             <input type="email" name="email" class="form-control rounded-pill" value="{{ auth()->user()->email }}" required>
                         </div>

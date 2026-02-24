@@ -22,13 +22,17 @@ class ProfileController extends Controller{
         $user = auth()->user();
 
         $request->validate([
-            'full_name' => 'required|string|max:255',
+            'fname' => 'required|string|max:255',
+            'mname' => 'nullable|string|max:255',
+            'lname' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'password' => 'nullable|string|min:6|confirmed',
         ]);
 
-        $user->full_name = $request->input('full_name');
+        $user->fname = $request->input('fname');
+        $user->mname = $request->input('mname');
+        $user->lname = $request->input('lname');
         $user->email = $request->input('email');
 
         if ($request->hasFile('profile_image')) {

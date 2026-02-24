@@ -54,83 +54,70 @@
                 @endif
 
                 {{-- ================= HOD MENU (HOD ONLY) ================= --}}
-                @if(auth()->user()->role === 'hod')
-                    <li class="nav-header" style="white-space: nowrap;">HOD MENU</li>
+                {{-- ================= HOD MENU (HOD ONLY) ================= --}}
+@if(auth()->user()->role === 'hod')
+    <li class="nav-header">HOD MENU</li>
 
-                    <li class="nav-item">
-                        <a href="{{ route('leaves.staff') }}" class="nav-link {{ request()->routeIs('leaves.staff') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-users"></i>
-                            <p style="white-space: nowrap;">Department Staff</p>
-                        </a>
-                    </li>
+    <li class="nav-item">
+        <a href="{{ route('leaves.staff') }}"
+           class="nav-link {{ request()->routeIs('leaves.staff') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-users"></i>
+            <p>Department Staff</p>
+        </a>
+    </li>
 
+    <li class="nav-item">
+        <a href="{{ route('leaves.index') }}"
+           class="nav-link {{ request()->routeIs('leaves.index') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-calendar-alt"></i>
+            <p>
+                All Leave Requests
+                <span class="badge bg-info ms-2">
+                    {{ \App\Models\LeaveRequest::count() }}
+                </span>
+            </p>
+        </a>
+    </li>
 
-                    <li class="nav-item">
-                        <a href="{{ route('leaves.index') }}" class="nav-link {{ request()->routeIs('leaves.index') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-calendar-alt"></i>
-                            <p style="white-space: nowrap;">
-                                All Leave Requests
-                                <span class="badge bg-info ms-2">
-                                    {{ \App\Models\LeaveRequest::count() }}
-                                </span>
-                            </p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('leaves.pending') }}" class="nav-link {{ request()->routeIs('leaves.pending') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-hourglass-half"></i>
-                            <p style="white-space: nowrap;">
-                                Pending Leaves
-                                <span class="badge bg-warning ms-2">
-                                    {{ \App\Models\LeaveRequest::whereIn('status', ['pending','on_progress'])->count() }}
-                                </span>
-                            </p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('leaves.approved') }}" class="nav-link {{ request()->routeIs('leaves.approved') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-check-circle"></i>
-                            <p style="white-space: nowrap;">
-                                Approved Leaves
-                                <span class="badge bg-success ms-2">
-                                    {{ \App\Models\LeaveRequest::where('status', 'approved')->count() }}
-                                </span>
-                            </p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ route('leaves.rejected') }}" class="nav-link {{ request()->routeIs('leaves.rejected') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-times-circle"></i>
-                            <p style="white-space: nowrap;">
-                                Rejected Leaves
-                                <span class="badge bg-danger ms-2">
-                                    {{ \App\Models\LeaveRequest::where('status', 'rejected')->count() }}
-                                </span>
-                            </p>
-                        </a>
-                    </li>
+    <li class="nav-item">
+        <a href="{{ route('leaves.pending') }}"
+           class="nav-link {{ request()->routeIs('leaves.pending') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-hourglass-half"></i>
+            <p>
+                Pending Leaves
+                <span class="badge bg-warning ms-2">
+                    {{ \App\Models\LeaveRequest::whereIn('status', ['pending','on_progress'])->count() }}
+                </span>
+            </p>
+        </a>
+    </li>
 
-                    <li class="nav-item">
-                        <a href="{{ route('leaves.pending') }}" class="nav-link {{ request()->routeIs('leaves.pending') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-hourglass-half"></i>
-                            <p style="white-space: nowrap;">Pending Leaves</p>
-                        </a>
-                    </li>
+    <li class="nav-item">
+        <a href="{{ route('leaves.approved') }}"
+           class="nav-link {{ request()->routeIs('leaves.approved') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-check-circle"></i>
+            <p>
+                Approved Leaves
+                <span class="badge bg-success ms-2">
+                    {{ \App\Models\LeaveRequest::where('status', 'approved')->count() }}
+                </span>
+            </p>
+        </a>
+    </li>
 
-                    <li class="nav-item">
-                        <a href="{{ route('leaves.approved') }}" class="nav-link {{ request()->routeIs('leaves.approved') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-check-circle"></i>
-                            <p style="white-space: nowrap;">Approved Leaves</p>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="{{ route('leaves.rejected') }}" class="nav-link {{ request()->routeIs('leaves.rejected') ? 'active' : '' }}">
-                            <i class="nav-icon fas fa-times-circle"></i>
-                            <p style="white-space: nowrap;">Rejected Leaves</p>
-                        </a>
-                    </li>
-                @endif
+    <li class="nav-item">
+        <a href="{{ route('leaves.rejected') }}"
+           class="nav-link {{ request()->routeIs('leaves.rejected') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-times-circle"></i>
+            <p>
+                Rejected Leaves
+                <span class="badge bg-danger ms-2">
+                    {{ \App\Models\LeaveRequest::where('status', 'rejected')->count() }}
+                </span>
+            </p>
+        </a>
+    </li>
+@endif
 
                 {{-- ================= ADMIN MENU (ADMIN ONLY) ================= --}}
                 @if(auth()->user()->role === 'admin')
