@@ -22,13 +22,13 @@
     <ul class="navbar-nav ml-auto align-items-center">
         {{-- Notification Bell --}}
         <li class="nav-item dropdown">
-            <a class="nav-link" data-toggle="dropdown" href="#">
+            <a class="nav-link" data-bs-toggle="dropdown" href="#">
                 <i class="far fa-bell"></i>
                 <span class="badge badge-danger navbar-badge">
                     {{ \App\Models\LeaveRequest::whereIn('status', ['pending','on_progress'])->count() }}
                 </span>
             </a>
-            <div class="dropdown-menu dropdown-menu-right">
+            <div class="dropdown-menu dropdown-menu-end">
                 <span class="dropdown-item">New pending leave requests</span>
                 <div class="dropdown-divider"></div>
                 <a href="{{ route('leaves.pending') }}" class="dropdown-item">View Pending Leaves</a>
@@ -49,15 +49,26 @@
         </li>
         {{-- User Dropdown with Image --}}
         <li class="nav-item dropdown">
-            <a class="nav-link" data-toggle="dropdown" href="#">
-                <img src="{{ auth()->user()->profile_image ?? '/default-profile.png' }}" class="rounded-circle" width="32" height="32" alt="Profile">
-                <span class="d-none d-md-inline ml-1">
+            <a class="nav-link d-flex align-items-center" data-bs-toggle="dropdown" href="#">
+                <img src="{{ auth()->user()->profile_image ?? '/default-profile.png' }}" class="rounded-circle border border-primary" width="36" height="36" alt="Profile">
+                <span class="d-none d-md-inline ml-2 fw-bold">
                     {{ auth()->user()->full_name ?? 'User' }}
                 </span>
+                <i class="fas fa-caret-down ml-2"></i>
             </a>
-            <div class="dropdown-menu dropdown-menu-right">
+            <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 260px;">
+                <div class="text-center mb-2">
+                    <img src="{{ auth()->user()->profile_image ?? '/default-profile.png' }}" class="rounded-circle border border-secondary" width="64" height="64" alt="Profile">
+                    <div class="fw-bold mt-2">{{ auth()->user()->full_name ?? 'User' }}</div>
+                    <div class="text-muted small">{{ auth()->user()->email }}</div>
+                    <span class="badge bg-info text-dark mt-1">{{ ucfirst(auth()->user()->role) }}</span>
+                </div>
+                <div class="dropdown-divider"></div>
                 <a href="{{ route('profile') }}" class="dropdown-item">
-                    <i class="fas fa-user-circle mr-2"></i> Profile Settings
+                    <i class="fas fa-user-circle mr-2"></i> Profile
+                </a>
+                <a href="{{ route('profile') }}#settings" class="dropdown-item">
+                    <i class="fas fa-cog mr-2"></i> Settings
                 </a>
                 <div class="dropdown-divider"></div>
                 <a href="{{ route('logout') }}" class="dropdown-item text-danger"

@@ -33,6 +33,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Dashboard & Resources (only accessible to authenticated users)
 Route::middleware('auth')->group(function () {
+    Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
 
     // Dashboard
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
@@ -67,6 +68,7 @@ Route::middleware('auth')->group(function () {
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // Audit Logs (route defined above)
 });
