@@ -266,23 +266,75 @@
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 <script>
-    const canvas = document.getElementById('signature-pad');
-    const signaturePad = new SignaturePad(canvas);
-    const clearBtn = document.getElementById('clear-signature');
-    const submitBtn = document.getElementById('submit-approval');
-    const hiddenInput = document.getElementById('digital_signature');
+    (function() {
+        let signaturePad = null;
 
-    clearBtn.addEventListener('click', () => {
-        signaturePad.clear();
-    });
-
-    submitBtn.addEventListener('click', function(event) {
-        if (!signaturePad.isEmpty()) {
-            hiddenInput.value = signaturePad.toDataURL();
-        } else {
-            alert('Please provide a signature before submitting.');
-            event.preventDefault();
+        function resizeCanvas(canvas) {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const width = canvas.offsetWidth;
+            const height = canvas.offsetHeight || 200;
+            canvas.width = Math.floor(width * ratio);
+            canvas.height = Math.floor(height * ratio);
+            const ctx = canvas.getContext('2d');
+            ctx.scale(ratio, ratio);
         }
-    });
+
+        function initSignaturePad() {
+            const canvas = document.getElementById('signature-pad');
+            if (!canvas) return;
+            // Ensure canvas visible size
+            canvas.style.width = '100%';
+            canvas.style.height = '200px';
+            resizeCanvas(canvas);
+            signaturePad = new SignaturePad(canvas, {
+                backgroundColor: 'rgba(255,255,255,0)',
+                penColor: 'rgb(0,0,0)'
+            });
+        }
+
+        const approveModalEl = document.getElementById('approveModal');
+        if (approveModalEl) {
+            approveModalEl.addEventListener('shown.bs.modal', function () {
+                // init after modal is visible to get proper sizes
+                initSignaturePad();
+            });
+
+            approveModalEl.addEventListener('hidden.bs.modal', function () {
+                if (signaturePad) signaturePad.clear();
+            });
+        }
+
+        const clearBtn = document.getElementById('clear-signature');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                if (signaturePad) signaturePad.clear();
+            });
+        }
+
+        // On form submit, validate and write data URL to hidden input
+        const approveForm = document.querySelector('#approveModal form');
+        if (approveForm) {
+            approveForm.addEventListener('submit', function (e) {
+                const hiddenInput = document.getElementById('digital_signature');
+                if (!signaturePad || signaturePad.isEmpty()) {
+                    e.preventDefault();
+                    alert('Please provide a signature before submitting.');
+                    return;
+                }
+                // set PNG data URL
+                hiddenInput.value = signaturePad.toDataURL('image/png');
+            });
+        }
+
+        // Preserve strokes on resize
+        window.addEventListener('resize', function () {
+            const canvas = document.getElementById('signature-pad');
+            if (!canvas || !signaturePad) return;
+            const data = signaturePad.toData();
+            resizeCanvas(canvas);
+            signaturePad.clear();
+            signaturePad.fromData(data);
+        });
+    })();
 </script>
 @endsection
