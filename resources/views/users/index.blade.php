@@ -95,3 +95,20 @@
     </div>
 </div>
 @endsection
+
+        @push('scripts')
+        <script>
+            $(document).ready(function () {
+                if (!$.fn.DataTable.isDataTable('#dataTable')) {
+                    $('#dataTable').DataTable({
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        info: true,
+                        autoWidth: false,
+                        responsive: true
+                    });
+                }
+            });
+        </script>
+        @endpush

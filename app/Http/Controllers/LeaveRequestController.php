@@ -351,7 +351,7 @@ class LeaveRequestController extends Controller
         return $pdf->Output('leave_request_'.$leave->id.'.pdf','D');
     }
 
-    public function approve($id)
+    public function approve(Request $request, $id)
     {
         $leave = LeaveRequest::with('user.department')->findOrFail($id);
         $user = Auth::user();
@@ -361,16 +361,39 @@ class LeaveRequestController extends Controller
             return back()->with('error','Cannot approve leaves outside your department.');
         }
 
+        $signaturePath = $leave->admin_signature;
+        if ($request->hasFile('signature_file')) {
+            $signaturePath = $request->file('signature_file')->store('signatures', 'public');
+        }
+
         $leave->update([
             'status' => 'approved',
-            'admin_signature' => $user->name,
+            'admin_signature' => $signaturePath,
             'admin_signed_at' => now(),
+        ]);
+
+        // Log to LeaveHistory
+        \App\Models\LeaveHistory::create([
+            'leave_request_id' => $leave->id,
+            'user_id' => $user->id,
+            'action' => 'approved',
+            'remarks' => $request->input('hod_remarks'),
+            'created_at' => now(),
+        ]);
+
+        // Log to AuditLog
+        \App\Models\AuditLog::create([
+            'user_id' => $user->id,
+            'action' => 'approve',
+            'description' => 'Approved leave request ID: ' . $leave->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         return redirect()->route('leaves.show', $leave->id)->with('success','Leave request approved.');
     }
 
-    public function reject($id)
+    public function reject(Request $request, $id)
     {
         $leave = LeaveRequest::with('user.department')->findOrFail($id);
         $user = Auth::user();
@@ -382,8 +405,26 @@ class LeaveRequestController extends Controller
 
         $leave->update([
             'status' => 'rejected',
-            'admin_signature' => $user->name,
+            'admin_signature' => $leave->admin_signature,
             'admin_signed_at' => now(),
+        ]);
+
+        // Log to LeaveHistory
+        \App\Models\LeaveHistory::create([
+            'leave_request_id' => $leave->id,
+            'user_id' => $user->id,
+            'action' => 'rejected',
+            'remarks' => $request->input('remarks'),
+            'created_at' => now(),
+        ]);
+
+        // Log to AuditLog
+        \App\Models\AuditLog::create([
+            'user_id' => $user->id,
+            'action' => 'reject',
+            'description' => 'Rejected leave request ID: ' . $leave->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
         ]);
 
         return redirect()->route('leaves.show', $leave->id)->with('success','Leave request rejected.');

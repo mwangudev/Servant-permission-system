@@ -51,9 +51,9 @@ Route::middleware('auth')->group(function () {
     Route::get('leaves/pending', [LeaveRequestController::class,'pending'])->name('leaves.pending');
     Route::get('leaves/rejected', [LeaveRequestController::class,'rejected'])->name('leaves.rejected');
     Route::get('leaves/staff', [LeaveRequestController::class,'staff'])->name('leaves.staff');
-    //Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit_logs');
-    Route::get('leaves/{id}/approve', [LeaveRequestController::class,'approve'])->name('leaves.approve');
-    Route::get('leaves/{id}/reject', [LeaveRequestController::class,'reject'])->name('leaves.reject');
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::put('leaves/{id}/approve', [LeaveRequestController::class,'approve'])->name('leaves.approve');
+    Route::put('leaves/{id}/reject', [LeaveRequestController::class,'reject'])->name('leaves.reject');
     Route::resource('leaves', LeaveRequestController::class);
 
     Route::get('leaves/{id}/download-pdf', [LeaveRequestController::class, 'downloadPDF'])
@@ -68,6 +68,5 @@ Route::middleware('auth')->group(function () {
     // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
 
-    // Audit Logs
-    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit_logs');
+    // Audit Logs (route defined above)
 });

@@ -11,6 +11,14 @@ class LeaveRequest extends Model
     use HasFactory;
 
     // Mass assignable fields
+
+    /**
+     * Relationship: A leave request has many histories (timeline)
+     */
+    public function histories()
+    {
+        return $this->hasMany(LeaveHistory::class);
+    }
     protected $fillable = [
         'user_id',
         'request_type',

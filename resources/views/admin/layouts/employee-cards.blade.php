@@ -22,7 +22,7 @@
         <div class="icon">
             <i class="fas fa-clock"></i>
         </div>
-        <a href="{{ route('leaves.showmy') }}" class="small-box-footer">
+        <a href="{{ route('leaves.pending') }}" class="small-box-footer">
             View Info <i class="fas fa-arrow-circle-right"></i>
         </a>
     </div>
@@ -37,7 +37,7 @@
         <div class="icon">
             <i class="fas fa-check-circle"></i>
         </div>
-        <a href="{{ route('leaves.showmy') }}" class="small-box-footer">
+        <a href="{{ route('leaves.approved') }}" class="small-box-footer">
             View Info <i class="fas fa-arrow-circle-right"></i>
         </a>
     </div>
@@ -52,7 +52,7 @@
         <div class="icon">
             <i class="fas fa-times-circle"></i>
         </div>
-        <a href="{{ route('leaves.showmy') }}" class="small-box-footer">
+        <a href="{{ route('leaves.rejected') }}" class="small-box-footer">
             View Info <i class="fas fa-arrow-circle-right"></i>
         </a>
     </div>

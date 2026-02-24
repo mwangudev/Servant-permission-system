@@ -191,6 +191,24 @@ class AuthController extends Controller
         $chartLabels = $chartData->keys()->toArray();
         $chartValues = $chartData->values()->toArray();
 
+        // Employee chart data
+        $employeeChartLabels = ['Submitted', 'Pending', 'Approved', 'Rejected'];
+        $employeeChartValues = [
+            $submittedCount,
+            $pendingCount,
+            $approvedCount,
+            $rejectedCount
+        ];
+
+        // HOD chart data
+        $hodChartLabels = ['Submitted', 'On Progress', 'Approved', 'Rejected'];
+        $hodChartValues = [
+            $hodSubmittedCount,
+            $hodOnProgressCount,
+            $hodApprovedCount,
+            $hodRejectedCount
+        ];
+
         return view('admin.dashboard', compact(
             'submittedCount',
             'pendingCount',
@@ -207,7 +225,11 @@ class AuthController extends Controller
             'recentPendingLeaves',
             'chartLabels',
             'chartValues',
-            'leaveRequests'
+            'leaveRequests',
+            'employeeChartLabels',
+            'employeeChartValues',
+            'hodChartLabels',
+            'hodChartValues'
         ));
     }
 }

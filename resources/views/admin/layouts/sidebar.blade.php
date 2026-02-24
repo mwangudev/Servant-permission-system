@@ -64,10 +64,49 @@
                         </a>
                     </li>
 
+
                     <li class="nav-item">
                         <a href="{{ route('leaves.index') }}" class="nav-link {{ request()->routeIs('leaves.index') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-calendar-alt"></i>
-                            <p style="white-space: nowrap;">All Leave Requests</p>
+                            <p style="white-space: nowrap;">
+                                All Leave Requests
+                                <span class="badge bg-info ms-2">
+                                    {{ \App\Models\LeaveRequest::count() }}
+                                </span>
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('leaves.pending') }}" class="nav-link {{ request()->routeIs('leaves.pending') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-hourglass-half"></i>
+                            <p style="white-space: nowrap;">
+                                Pending Leaves
+                                <span class="badge bg-warning ms-2">
+                                    {{ \App\Models\LeaveRequest::whereIn('status', ['pending','on_progress'])->count() }}
+                                </span>
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('leaves.approved') }}" class="nav-link {{ request()->routeIs('leaves.approved') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-check-circle"></i>
+                            <p style="white-space: nowrap;">
+                                Approved Leaves
+                                <span class="badge bg-success ms-2">
+                                    {{ \App\Models\LeaveRequest::where('status', 'approved')->count() }}
+                                </span>
+                            </p>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('leaves.rejected') }}" class="nav-link {{ request()->routeIs('leaves.rejected') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-times-circle"></i>
+                            <p style="white-space: nowrap;">
+                                Rejected Leaves
+                                <span class="badge bg-danger ms-2">
+                                    {{ \App\Models\LeaveRequest::where('status', 'rejected')->count() }}
+                                </span>
+                            </p>
                         </a>
                     </li>
 
@@ -117,6 +156,13 @@
                             <p style="white-space: nowrap;">Leave Requests</p>
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a href="{{ route('audit-logs.index') }}" class="nav-link {{ request()->routeIs('audit-logs.index') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-history"></i>
+                            <p style="white-space: nowrap;">User Log</p>
+                        </a>
+                    </li>
                 @endif
 
                 <hr class="mx-2 my-3 bg-secondary">
@@ -136,3 +182,4 @@
         </nav>
     </div>
 </aside>
+

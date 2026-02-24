@@ -6,10 +6,33 @@
 @section('content')
 <div class="container-fluid">
 
+
 {{-- ================= EMPLOYEE ================= --}}
 @if(auth()->user()->role === 'employee')
 <div class="row">
     @include('admin.layouts.employee-cards')
+</div>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h3 class="card-title">My Leave Overview</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="employeeBarChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h3 class="card-title">My Leave Distribution</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="employeePieChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 @endif
 
@@ -17,7 +40,6 @@
 {{-- ================= HOD ================= --}}
 @if(auth()->user()->role === 'hod')
 <div class="row">
-
     <div class="col-lg-3 col-12">
         <div class="small-box bg-info">
             <div class="inner">
@@ -25,13 +47,11 @@
                 <p>Pending request</p>
             </div>
             <div class="icon"><i class="fas fa-paper-plane"></i></div>
-            <a href="{{ route('leaves.index') }}" class="small-box-footer">
+            <a href="{{ route('leaves.pending') }}" class="small-box-footer">
                 View Info <i class="fas fa-arrow-circle-right"></i>
             </a>
         </div>
     </div>
-
-
     <div class="col-lg-3 col-12">
         <div class="small-box bg-warning">
             <div class="inner">
@@ -39,13 +59,11 @@
                 <p>On_progress request</p>
             </div>
             <div class="icon"><i class="fas fa-clock"></i></div>
-            <a href="{{ route('leaves.index') }}" class="small-box-footer">
+            <a href="{{ route('leaves.pending') }}" class="small-box-footer">
                 View Info <i class="fas fa-arrow-circle-right"></i>
             </a>
         </div>
     </div>
-
-
     <div class="col-lg-3 col-12">
         <div class="small-box bg-success">
             <div class="inner">
@@ -53,30 +71,46 @@
                 <p>Approved Requests</p>
             </div>
             <div class="icon"><i class="fas fa-check-circle"></i></div>
-            <a href="{{ route('leaves.index') }}" class="small-box-footer">
+            <a href="{{ route('leaves.approved') }}" class="small-box-footer">
                 View Info <i class="fas fa-arrow-circle-right"></i>
             </a>
         </div>
     </div>
-
-
-        <div class="col-lg-3 col-12">
-            <div class="small-box bg-danger">
-                <div class="inner">
-                    <h3>{{ $hodRejectedCount }}</h3>
-                    <p>Rejected Requests</p>
-                </div>
-                <div class="icon"><i class="fas fa-times-circle"></i></div>
-                <a href="{{ route('leaves.index') }}" class="small-box-footer">
-                    View Info <i class="fas fa-arrow-circle-right"></i>
-                </a>
+    <div class="col-lg-3 col-12">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                <h3>{{ $hodRejectedCount }}</h3>
+                <p>Rejected Requests</p>
+            </div>
+            <div class="icon"><i class="fas fa-times-circle"></i></div>
+            <a href="{{ route('leaves.rejected') }}" class="small-box-footer">
+                View Info <i class="fas fa-arrow-circle-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h3 class="card-title">Department Leave Overview</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="hodBarChart"></canvas>
             </div>
         </div>
-
-
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-dark">
+                <h3 class="card-title">Department Leave Distribution</h3>
+            </div>
+            <div class="card-body">
+                <canvas id="hodPieChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
-
-
 @endif
 
 
@@ -222,23 +256,70 @@ const dataValues = [
     {{ $allApprovedCount }},
     {{ $allRejectedCount }}
 ];
-
 const labels = ['Submitted','Pending','Approved','Rejected'];
 const colors = ['#17a2b8','#ffc107','#28a745','#dc3545'];
-
 new Chart(document.getElementById('barChart'), {
     type: 'bar',
     data: { labels: labels,
         datasets: [{ data: dataValues, backgroundColor: colors }]
     }
 });
-
 new Chart(document.getElementById('pieChart'), {
     type: 'pie',
     data: { labels: labels,
         datasets: [{ data: dataValues, backgroundColor: colors }]
     }
 });
+</script>
+@endif
+
+@if(auth()->user()->role === 'employee')
+<script>
+const employeeLabels = @json($employeeChartLabels);
+const employeeValues = @json($employeeChartValues);
+const employeeColors = ['#17a2b8','#ffc107','#28a745','#dc3545'];
+if (employeeValues.some(v => v > 0)) {
+    new Chart(document.getElementById('employeeBarChart'), {
+        type: 'bar',
+        data: { labels: employeeLabels,
+            datasets: [{ data: employeeValues, backgroundColor: employeeColors }]
+        }
+    });
+    new Chart(document.getElementById('employeePieChart'), {
+        type: 'pie',
+        data: { labels: employeeLabels,
+            datasets: [{ data: employeeValues, backgroundColor: employeeColors }]
+        }
+    });
+} else {
+    document.getElementById('employeeBarChart').parentElement.innerHTML = '<div class="alert alert-info">No leave data to display.</div>';
+    document.getElementById('employeePieChart').parentElement.innerHTML = '<div class="alert alert-info">No leave data to display.</div>';
+}
+</script>
+@endif
+
+@if(auth()->user()->role === 'hod')
+<script>
+const hodLabels = @json($hodChartLabels);
+const hodValues = @json($hodChartValues);
+const hodColors = ['#17a2b8','#007bff','#28a745','#dc3545'];
+if (hodValues.some(v => v > 0)) {
+    new Chart(document.getElementById('hodBarChart'), {
+        type: 'bar',
+        data: { labels: hodLabels,
+            datasets: [{ data: hodValues, backgroundColor: hodColors }]
+        }
+    });
+    new Chart(document.getElementById('hodPieChart'), {
+        type: 'pie',
+        data: { labels: hodLabels,
+            datasets: [{ data: hodValues, backgroundColor: hodColors }]
+        }
+    });
+} else {
+    document.getElementById('hodBarChart').parentElement.innerHTML = '<div class="alert alert-info">No department leave data to display.</div>';
+    document.getElementById('hodPieChart').parentElement.innerHTML = '<div class="alert alert-info">No department leave data to display.</div>';
+}
 </script>
 @endif
 @endsection
