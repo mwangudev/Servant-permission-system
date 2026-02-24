@@ -136,11 +136,10 @@ class AuthController extends Controller
                 ->where('status', 'submitted')
                 ->count();
 
-            $hodOnProgressCount = $leaveRequests
-                ->whereIn('user_id', $departmentUserIds)
-                ->where('status', 'pending')
-                ->whereNotNull('hod_signature')
-                ->count();
+        $hodOnProgressCount = $leaveRequests
+            ->where('user_id', $departmentUserIds)
+            ->where('status', 'pending')
+            ->count();
 
             $hodApprovedCount = $leaveRequests
                 ->whereIn('user_id', $departmentUserIds)
