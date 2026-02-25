@@ -276,155 +276,84 @@ class LeaveRequestController extends Controller
         return redirect()->route('leaves.index')->with('success','Leave request deleted.');
     }
 
-    /**
-     * Download leave request PDF.
-     */
-    public function downloadPDF($id)
+   
+
+    public function approve(Request $request, $id)
     {
         $leave = LeaveRequest::with('user.department')->findOrFail($id);
         $user = Auth::user();
 
         if (!$leave->user) abort(404);
-        if ($user->id !== $leave->user_id && !in_array($user->role,['hod','admin'])) abort(403);
-        if ($user->role === 'hod' && $user->department_id !== $leave->user->department_id) abort(403);
-
-        $pdf = new TCPDF('P','mm','A4',true,'UTF-8',false);
-        $pdf->SetMargins(15,15,15);
-        $pdf->SetAutoPageBreak(true,15);
-        $pdf->AddPage();
-
-        $pdf->SetFont('helvetica','B',20);
-        $pdf->Cell(0,15,'MINISTRY OF HEALTH',0,1,'C');
-        $pdf->SetFont('helvetica','',12);
-        $pdf->Cell(0,10,'Leave Request Form',0,1,'C');
-        $pdf->Ln(10);
-
-        $pdf->SetFont('helvetica','B',11);
-        $pdf->Cell(0,10,'EMPLOYEE DETAILS',0,1,'L');
-        $pdf->SetFont('helvetica','',11);
-
-        $details = "Employee Name: {$leave->user->full_name}\n";
-        $details .= "Email: {$leave->user->email}\n";
-        $details .= "Department: {$leave->user->department->name}\n";
-        $details .= "Leave Type: {$leave->request_type}\n";
-        $details .= "Start Date: ".Carbon::parse($leave->start_date)->format('d M Y')."\n";
-        $details .= "End Date: ".Carbon::parse($leave->end_date)->format('d M Y')."\n";
-        $details .= "Duration: ".(Carbon::parse($leave->start_date)->diffInDays(Carbon::parse($leave->end_date))+1)." day(s)\n";
-        $details .= "Status: ".strtoupper(str_replace('_',' ',$leave->status))."\n";
-
-        $pdf->MultiCell(0,5,$details,0,'L');
-        $pdf->Ln(5);
-
-        // Signatures
-        $pdf->SetFont('helvetica','B',11);
-        $pdf->Cell(0,10,'APPROVALS',0,1,'L');
-        $pdf->SetFont('helvetica','',10);
-
-        foreach (['hod','admin'] as $role) {
-            $sigField = "{$role}_signature";
-            $remarksField = "{$role}_remarks";
-            $signedAtField = "{$role}_signed_at";
-
-            if ($leave->$sigField) {
-                $pdf->Ln(5);
-                $pdf->Cell(0,10, strtoupper($role).' Approval:',0,1);
-
-                if (strpos($leave->$sigField,'data:image')===0) {
-                    list(,$data) = explode(',', explode(';',$leave->$sigField)[1]);
-                    $data = base64_decode($data);
-                    $tmpFile = sys_get_temp_dir()."/{$role}_sig.png";
-                    file_put_contents($tmpFile,$data);
-                    $pdf->Image($tmpFile,20,$pdf->GetY(),40,20);
-                    $pdf->Ln(20);
-                    unlink($tmpFile);
-                }
-
-                if ($leave->$remarksField) $pdf->Cell(0,5,"Remarks: ".$leave->$remarksField,0,1);
-                $pdf->Cell(0,5,"Approved on: ".Carbon::parse($leave->$signedAtField)->format('d M Y H:i:s'),0,1);
-            }
+        if ($user->role === 'hod' && $user->department_id !== $leave->user->department_id) {
+            return back()->with('error','Cannot approve leaves outside your department.');
         }
 
-        $pdf->Ln(15);
-        $pdf->SetFont('helvetica','',8);
-        $pdf->Cell(0,10,'This is an electronically signed document.',0,1,'C');
-        $pdf->Cell(0,10,'Generated on: '.now()->format('d M Y H:i:s'),0,1,'C');
+        $signaturePath = $leave->admin_signature;
+        if ($request->hasFile('signature_file')) {
+            $signaturePath = $request->file('signature_file')->store('signatures', 'public');
+        }
 
-        return $pdf->Output('leave_request_'.$leave->id.'.pdf','D');
-    }
-
-
-    //Admin Or Hod approve and reject functions
-
-    /**
-     * Method ya Ku-Approve Likizo
-     */
-    public function approve(Request $request, $id)
-    {
-        // 1. Tambua nani yupo hewani na cheo chake
-        $Authuser = auth()->user();
-        $userRole = $Authuser->role; // 🟢 TUNACHUKUA CHEO (ROLE) HAPA
-
-        $request->validate([
-            'digital_signature' => 'required|string',
-            'remarks' => 'nullable|string',
+        $leave->update([
+            'status' => 'approved',
+            'admin_signature' => $signaturePath,
+            'admin_signed_at' => now(),
         ]);
 
-        // 2. Tafuta hiyo likizo kwenye database (MARA MOJA TU)
-        $leaveRequest = LeaveRequest::findOrFail($id);
+        // Log to LeaveHistory
+        \App\Models\LeaveHistory::create([
+            'leave_request_id' => $leave->id,
+            'user_id' => $user->id,
+            'action' => 'approved',
+            'remarks' => $request->input('hod_remarks'),
+            'created_at' => now(),
+        ]);
 
-        // 3. Pata picha ya saini kutoka kwenye Base64 Text
-        $signatureData = $request->input('digital_signature');
-        $image_parts = explode(";base64,", $signatureData);
-        $image_base64 = base64_decode($image_parts[1]);
+        // Log to AuditLog
+        \App\Models\AuditLog::create([
+            'user_id' => $user->id,
+            'action' => 'approve',
+            'description' => 'Approved leave request ID: ' . $leave->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
 
-        // 4. HIFADHI PICHA (Tunatumia $userRole kwenye jina la faili, sio $Authuser)
-        $fileName = 'signature_' . $userRole . '_' . $leaveRequest->id . '_' . time() . '.png';
-        $filePath = 'signatures/leaves/' . $fileName;
-        Storage::disk('public')->put($filePath, $image_base64);
-
-        // 5. WEKA KWENYE DATABASE KULINGANA NA CHEO ($userRole)
-        if ($userRole === 'hod') {
-            $leaveRequest->hod_signature = 'storage/' . $filePath;
-            $leaveRequest->hod_remarks = $request->remarks;
-            $leaveRequest->status = 'pending'; // Inasubiri Admin
-        } elseif ($userRole === 'admin') {
-            $leaveRequest->admin_signature = 'storage/' . $filePath;
-            $leaveRequest->admin_remarks = $request->remarks;
-            $leaveRequest->status = 'approved'; // Imekamilika
-        }
-
-        // 6. Save sasa kwenye Database
-        $leaveRequest->save();
-
-        // 7. Rudisha ujumbe wa pongezi
-        return redirect()->back()->with('success', 'Leave request imepitishwa na kusainiwa kikamilifu!');
+        return redirect()->route('leaves.show', $leave->id)->with('success','Leave request approved.');
     }
 
-    /**
-     * Method ya Ku-Reject Likizo
-     */
     public function reject(Request $request, $id)
     {
-        // 1. Hakikisha sababu ya kukataa (remarks) imeandikwa
-        $request->validate([
-            'remarks' => 'required|string',
-        ]);
+        $leave = LeaveRequest::with('user.department')->findOrFail($id);
+        $user = Auth::user();
 
-        $leaveRequest = LeaveRequest::findOrFail($id);
-
-        // 2. Badilisha status iwe 'rejected'
-        $leaveRequest->status = 'rejected';
-
-        // 3. Hifadhi sababu kulingana na role (Kama una column tofauti za remarks)
-        if (auth()->user()->role === 'hod') {
-            $leaveRequest->hod_remarks = $request->remarks;
-        } else {
-            // Kama ni Admin
-             $leaveRequest->admin_remarks = $request->remarks;
+        if (!$leave->user) abort(404);
+        if ($user->role === 'hod' && $user->department_id !== $leave->user->department_id) {
+            return back()->with('error','Cannot reject leaves outside your department.');
         }
 
-        $leaveRequest->save();
+        $leave->update([
+            'status' => 'rejected',
+            'admin_signature' => $leave->admin_signature,
+            'admin_signed_at' => now(),
+        ]);
 
-        return redirect()->back()->with('error', 'Leave request is rejected.');
+        // Log to LeaveHistory
+        \App\Models\LeaveHistory::create([
+            'leave_request_id' => $leave->id,
+            'user_id' => $user->id,
+            'action' => 'rejected',
+            'remarks' => $request->input('remarks'),
+            'created_at' => now(),
+        ]);
+
+        // Log to AuditLog
+        \App\Models\AuditLog::create([
+            'user_id' => $user->id,
+            'action' => 'reject',
+            'description' => 'Rejected leave request ID: ' . $leave->id,
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
+        return redirect()->route('leaves.show', $leave->id)->with('success','Leave request rejected.');
     }
 }

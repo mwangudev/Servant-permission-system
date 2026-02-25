@@ -33,6 +33,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Dashboard & Resources (only accessible to authenticated users)
 Route::middleware('auth')->group(function () {
+    Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
 
     // Dashboard
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
@@ -51,9 +52,9 @@ Route::middleware('auth')->group(function () {
     Route::get('leaves/pending', [LeaveRequestController::class,'pending'])->name('leaves.pending');
     Route::get('leaves/rejected', [LeaveRequestController::class,'rejected'])->name('leaves.rejected');
     Route::get('leaves/staff', [LeaveRequestController::class,'staff'])->name('leaves.staff');
-    //Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit_logs');
-    Route::post('leaves/{id}/approve', [LeaveRequestController::class,'approve'])->name('leaves.approve');
-    Route::post('leaves/{id}/reject', [LeaveRequestController::class,'reject'])->name('leaves.reject');
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::put('leaves/{id}/approve', [LeaveRequestController::class,'approve'])->name('leaves.approve');
+    Route::put('leaves/{id}/reject', [LeaveRequestController::class,'reject'])->name('leaves.reject');
     Route::resource('leaves', LeaveRequestController::class);
 
     Route::get('leaves/{id}/download-pdf', [LeaveRequestController::class, 'downloadPDF'])
@@ -63,11 +64,13 @@ Route::middleware('auth')->group(function () {
 
 
     // Reports
-    Route::resource('reports', ReportController::class);
+    Route::get('reports/leaves', [ReportController::class, 'index'])->name('report.index');
+    Route::get('reports/{id}/individual', [ReportController::class, 'individualreport'])->name('report.individual');
+
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Audit Logs
-    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit_logs');
+    // Audit Logs (route defined above)
 });
