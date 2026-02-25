@@ -34,9 +34,19 @@
     </div>
 
     <div class="mt-3">
-        (c) Ruhusa ya mwisho nilipata tarehe <span class="dotted-line">........................</span>
-        mpaka tarehe <span class="dotted-line">........................</span>
-        ilikuwa ruhusa ya Kikazi/Binafsi. Kama ni safari ya kikazi eleza kazi uliyoenda kufanya na ambatanisha nakala ya taarifa ya safari husika uliyowasilisha kwa mamlaka iliyokutuma.
+        (c) Ruhusa ya mwisho nilipata tarehe
+        <span class="dotted-line">
+            {{ $lastLeave ? \Carbon\Carbon::parse($lastLeave->start_date)->format('Y/m/d') : 'Hakuna' }}
+        </span>
+        mpaka tarehe
+        <span class="dotted-line">
+            {{ $lastLeave ? \Carbon\Carbon::parse($lastLeave->end_date)->format('Y/m/d') : 'Hakuna' }}
+        </span>
+        ilikuwa ruhusa ya
+        <span class="dotted-line">
+            {{ $lastLeave ? ucfirst($lastLeave->request_type) : 'Hakuna' }}
+        </span>.
+        Kama ni safari ya kikazi eleza kazi uliyoenda kufanya na ambatanisha nakala ya taarifa ya safari husika uliyowasilisha kwa mamlaka iliyokutuma.
     </div>
 
     <div class="mt-3">

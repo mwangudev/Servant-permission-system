@@ -276,7 +276,7 @@ class LeaveRequestController extends Controller
         return redirect()->route('leaves.index')->with('success','Leave request deleted.');
     }
 
-   
+
 
     public function approve(Request $request, $id)
     {
@@ -356,4 +356,6 @@ class LeaveRequestController extends Controller
 
         return redirect()->route('leaves.show', $leave->id)->with('success','Leave request rejected.');
     }
+
+    
 }
