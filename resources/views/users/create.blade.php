@@ -147,6 +147,19 @@
                                 </div>
                             </div>
 
+                            {{-- assigned_as --}}
+                            <div class="form-group">
+                                <label>Assigned As (Optional)</label>
+                                <input type="text"
+                                       name="assigned_as"
+                                       value="{{ old('assigned_as') }}"
+                                       class="form-control @error('assigned_as') is-invalid @enderror">
+                                @error('assigned_as')
+                                    <span class="invalid-feedback">{{ $message }}</span>
+                                @enderror
+                                <small class="text-muted">E.g. "Head of IT Department"</small>
+                            </div>
+
                             {{-- Department --}}
                             <div class="form-group">
                                 <label>Department</label>

@@ -26,7 +26,6 @@ class LeaveRequest extends Model
         'end_date',
         'status',
         'report_path',
-        'admin_remark',
         'hod_signature',
         'hod_signed_at',
         'hod_remarks',
@@ -35,6 +34,16 @@ class LeaveRequest extends Model
         'admin_remarks',
         'reasons',
         'destination',
+        'request_category',
+    ];
+
+    protected $casts = [
+        'start_date'      => 'datetime',
+        'end_date'        => 'datetime',
+        'hod_signed_at'   => 'datetime',
+        'admin_signed_at' => 'datetime',
+        'created_at'      => 'datetime',
+        'updated_at'      => 'datetime',
     ];
 
     /**

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class LeaveRequestController extends Controller
 {
@@ -94,12 +95,13 @@ class LeaveRequestController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'request_type'  => 'required|string',
-            'start_date'    => 'required|date|today_or_future',
-            'end_date'      => 'required|date|after_or_equal:start_date',
-            'report_path'   => 'nullable|file|mimes:pdf,jpg,png|max:2048',
-            'reasons'       => 'nullable|string',
-            'destination'   => 'nullable|string',
+            'request_type'     => 'required|string',
+            'start_date'       => 'required|date|today_or_future',
+            'end_date'         => 'required|date|after_or_equal:start_date',
+            'report_path'      => 'nullable|file|mimes:pdf,jpg,png|max:2048',
+            'reasons'          => 'nullable|string',
+            'destination'      => 'nullable|string',
+            'request_category' => 'nullable|string',
         ], [
             'start_date.today_or_future' => 'Leave cannot start in the past.',
         ]);
@@ -111,16 +113,13 @@ class LeaveRequestController extends Controller
 
         $user = Auth::user();
 
-        // Overlap check
         $overlap = LeaveRequest::where('user_id', $user->id)
-            ->whereIn('status', ['submitted', 'on_progress', 'approved'])
+            ->whereIn('status', ['submitted', 'pending', 'approved'])
             ->where(function ($q) use ($validated) {
                 $q->whereBetween('start_date', [$validated['start_date'], $validated['end_date']])
                   ->orWhereBetween('end_date',   [$validated['start_date'], $validated['end_date']])
-                  ->orWhere(function ($q2) use ($validated) {
-                      $q2->where('start_date', '<=', $validated['start_date'])
-                         ->where('end_date',   '>=', $validated['end_date']);
-                  });
+                  ->orWhere(fn($q2) => $q2->where('start_date', '<=', $validated['start_date'])
+                                           ->where('end_date',   '>=', $validated['end_date']));
             })->exists();
 
         if ($overlap) {
@@ -143,7 +142,7 @@ class LeaveRequestController extends Controller
     public function show($id)
     {
         $leaveRequest = LeaveRequest::with('user.department')->findOrFail($id);
-        $user  = Auth::user();
+        $user = Auth::user();
 
         if ($user->role === 'employee' && $user->id !== $leaveRequest->user_id) {
             abort(403);
@@ -159,10 +158,11 @@ class LeaveRequestController extends Controller
     {
         $query = LeaveRequest::where('user_id', auth()->id());
 
-        if ($request->filled('status'))       $query->where('status', $request->status);
-        if ($request->filled('request_type')) $query->where('request_type', 'LIKE', '%' . $request->request_type . '%');
-        if ($request->filled('from_date'))    $query->whereDate('start_date', '>=', $request->from_date);
-        if ($request->filled('to_date'))      $query->whereDate('end_date',   '<=', $request->to_date);
+        if ($request->filled('status'))           $query->where('status', $request->status);
+        if ($request->filled('request_type'))     $query->where('request_type', 'LIKE', '%' . $request->request_type . '%');
+        if ($request->filled('request_category')) $query->where('request_category', 'LIKE', '%' . $request->request_category . '%');
+        if ($request->filled('from_date'))        $query->whereDate('start_date', '>=', $request->from_date);
+        if ($request->filled('to_date'))          $query->whereDate('end_date',   '<=', $request->to_date);
 
         $myleaves = $query->latest()->paginate(10);
         return view('leaves.showmy', compact('myleaves'));
@@ -190,38 +190,26 @@ class LeaveRequestController extends Controller
 
         $validated = $request->validate([
             'report_path'     => 'nullable|file|mimes:pdf,jpg,png|max:2048',
-            'hod_remarks'     => 'nullable|string',
-            'admin_remarks'   => 'nullable|string',
-            // status change should preferably go through approve/reject methods
+            'hod_remarks'     => 'nullable|string|max:1500',
+            'admin_remarks'   => 'nullable|string|max:1500',
         ]);
 
         if ($request->hasFile('report_path')) {
             $validated['report_path'] = $request->file('report_path')->store('reports', 'public');
         }
 
+        // Prevent overwriting with empty strings
+        if (isset($validated['hod_remarks']) && trim($validated['hod_remarks']) === '') {
+            unset($validated['hod_remarks']);
+        }
+        if (isset($validated['admin_remarks']) && trim($validated['admin_remarks']) === '') {
+            unset($validated['admin_remarks']);
+        }
+
         $leave->update($validated);
 
         return redirect()->route('leaves.show', $leave->id)->with('success', 'Leave request updated.');
     }
-
-  public function downloadPDF($id)
-{
-    $leaveRequest = LeaveRequest::with('user.department')->findOrFail($id);
-    $lastLeave = LeaveRequest::where('user_id', $leaveRequest->user_id)
-        ->where('id', '<', $leaveRequest->id)
-        ->where('start_date', '<', $leaveRequest->start_date)
-        ->whereIn('status', ['approved', 'rejected']) //
-        ->orderBy('start_date', 'desc')
-        ->first();
-
-    if ($leaveRequest->status !== 'approved') {
-        abort(403, 'Only approved leaves can be downloaded as PDF.');
-    }
-
-    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('leaves.pdf', compact('leaveRequest','lastLeave'));
-
-    return $pdf->download("leave_request_{$id}.pdf");
-}
 
     public function destroy($id)
     {
@@ -239,9 +227,26 @@ class LeaveRequestController extends Controller
         return redirect()->route('leaves.index')->with('success', 'Leave request deleted.');
     }
 
-    /**
-     * Approve leave - HOD moves to "on_progress", Admin finalizes to "approved"
-     */
+    public function downloadPDF($id)
+    {
+        $leaveRequest = LeaveRequest::with('user.department')->findOrFail($id);
+
+        $lastLeave = LeaveRequest::where('user_id', $leaveRequest->user_id)
+            ->where('id', '<', $leaveRequest->id)
+            ->where('start_date', '<', $leaveRequest->start_date)
+            ->whereIn('status', ['approved', 'rejected'])
+            ->orderBy('start_date', 'desc')
+            ->first();
+
+        if ($leaveRequest->status !== 'approved') {
+            abort(403, 'Only approved leaves can be downloaded as PDF.');
+        }
+
+        $pdf = Pdf::loadView('leaves.pdf', compact('leaveRequest', 'lastLeave'));
+
+        return $pdf->download("leave_request_{$id}.pdf");
+    }
+
     public function approve(Request $request, $id)
     {
         $leave = LeaveRequest::findOrFail($id);
@@ -255,48 +260,64 @@ class LeaveRequestController extends Controller
             abort(403);
         }
 
+        $validated = $request->validate([
+            'signature_file' => 'nullable|file|mimes:png,jpg,jpeg|max:2048',
+            'hod_remarks'    => 'nullable|string|max:1500',
+            'admin_remarks'  => 'nullable|string|max:1500',
+        ]);
+
         $signaturePath = null;
         if ($request->hasFile('signature_file')) {
             $signaturePath = $request->file('signature_file')->store('signatures', 'public');
         }
 
-        DB::transaction(function () use ($leave, $user, $request, $signaturePath) {
+        DB::transaction(function () use ($leave, $user, $validated, $signaturePath, $request) {
+            $remarksKey = $user->role === 'hod' ? 'hod_remarks' : 'admin_remarks';
+            $newRemarks = $validated[$remarksKey] ?? null;
+
+            $updateData = [];
 
             if ($user->role === 'hod') {
-                // HOD approval (first step)
                 if ($leave->status !== 'submitted') {
                     throw new \Exception('Leave must be in submitted status for HOD approval.');
                 }
 
-                $leave->update([
+                $updateData = [
                     'status'         => 'pending',
                     'hod_signature'  => $signaturePath,
                     'hod_signed_at'  => now(),
-                    'hod_remarks'    => $request->input('hod_remarks'),
-                ]);
+                ];
+
+                if ($newRemarks !== null && trim($newRemarks) !== '') {
+                    $updateData['hod_remarks'] = $newRemarks;
+                }
 
                 $action = 'Approved by HOD';
             } else {
-                // Admin final approval
                 if ($leave->status !== 'pending') {
-                    throw new \Exception('Leave must be in Pending status for Admin approval.');
+                    throw new \Exception('Leave must be in pending status for Admin approval.');
                 }
 
-                $leave->update([
+                $updateData = [
                     'status'          => 'approved',
                     'admin_signature' => $signaturePath,
                     'admin_signed_at' => now(),
-                    'admin_remarks'   => $request->input('admin_remarks'),
-                ]);
+                ];
+
+                if ($newRemarks !== null && trim($newRemarks) !== '') {
+                    $updateData['admin_remarks'] = $newRemarks;
+                }
 
                 $action = 'Approved By Administrator';
             }
+
+            $leave->update($updateData);
 
             LeaveHistory::create([
                 'leave_request_id' => $leave->id,
                 'user_id'          => $user->id,
                 'action'           => $action,
-                'remarks'          => $request->input('hod_remarks') ?? $request->input('admin_remarks'),
+                'remarks'          => $newRemarks ?: 'No remarks added during approval',
             ]);
 
             AuditLog::create([
@@ -330,6 +351,7 @@ class LeaveRequestController extends Controller
         $leaveRequests = $query->latest()->paginate(15);
         return view('leaves.onprogress', compact('leaveRequests'));
     }
+
     public function reject(Request $request, $id)
     {
         $leave = LeaveRequest::findOrFail($id);
@@ -343,19 +365,29 @@ class LeaveRequestController extends Controller
             abort(403);
         }
 
-        DB::transaction(function () use ($leave, $user, $request) {
+        $validated = $request->validate([
+            'remarks' => 'nullable|string|max:1500',
+        ]);
 
-            $leave->update([
-                'status'        => 'rejected',
-                'hod_remarks'   => $user->role === 'hod'   ? $request->input('remarks') : $leave->hod_remarks,
-                'admin_remarks' => $user->role === 'admin' ? $request->input('remarks') : $leave->admin_remarks,
-            ]);
+        DB::transaction(function () use ($leave, $user, $validated, $request) {
+            $remarksKey = $user->role === 'hod' ? 'hod_remarks' : 'admin_remarks';
+            $newRemarks = $validated['remarks'] ?? null;
+
+            $updateData = [
+                'status' => 'rejected',
+            ];
+
+            if ($newRemarks !== null && trim($newRemarks) !== '') {
+                $updateData[$remarksKey] = $newRemarks;
+            }
+
+            $leave->update($updateData);
 
             LeaveHistory::create([
                 'leave_request_id' => $leave->id,
                 'user_id'          => $user->id,
                 'action'           => 'rejected',
-                'remarks'          => $request->input('remarks'),
+                'remarks'          => $newRemarks ?: 'No rejection reason provided',
             ]);
 
             AuditLog::create([
@@ -370,6 +402,4 @@ class LeaveRequestController extends Controller
         return redirect()->route('leaves.show', $leave->id)
             ->with('success', 'Leave request rejected.');
     }
-
-
 }

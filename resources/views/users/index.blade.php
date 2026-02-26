@@ -34,7 +34,7 @@
                             <tr>
                                 <th>Name</th>
                                 <th>Email</th>
-                                <th>Role</th>
+                                <th>Role | Assigned as</th>
                                 <th>Department</th>
                                 <th width="180">Actions</th>
                             </tr>
@@ -59,7 +59,8 @@
 
                                     <td>
                                         <span class="badge badge-info">
-                                            {{ ucfirst($user->role) }}
+                                            {{ ucfirst($user->role) }} |
+                                            {{ ucfirst($user->assigned_as) }}
                                         </span>
                                     </td>
 
@@ -116,24 +117,6 @@
 </div>
 @endsection
 
-<<<<<<< HEAD
-        @push('scripts')
-        <script>
-            $(document).ready(function () {
-                if (!$.fn.DataTable.isDataTable('#dataTable')) {
-                    $('#dataTable').DataTable({
-                        paging: true,
-                        searching: true,
-                        ordering: true,
-                        info: true,
-                        autoWidth: false,
-                        responsive: true
-                    });
-                }
-            });
-        </script>
-        @endpush
-=======
 
 @push('scripts')
 <script>
@@ -151,4 +134,3 @@ $(function () {
 });
 </script>
 @endpush
->>>>>>> e394fef3e643a070c40e624698ac83d910a9a5d7

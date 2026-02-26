@@ -147,23 +147,40 @@
                                 </div>
                             </div>
 
-                            {{-- Department --}}
+                            {{-- assigned_as --}}
                             <div class="form-group">
-                                <label>Department</label>
-                                <select name="department_id"
-                                        class="form-control @error('department_id') is-invalid @enderror">
-                                    <option value="{{ $user->department->id }}">{{ $user->department->name }}</option>
-                                    @foreach ($departments as $department)
-                                        <option value="{{ $department->id }}"
-                                            {{ old('department_id') == $department->id ? 'selected' : '' }}>
-                                            {{ $department->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('department_id')
+                                <label>Assigned As (Optional)</label>
+                                <input type="text"
+                                       name="assigned_as"
+                                       value="{{ old('assigned_as', $user->assigned_as) }}"
+                                       class="form-control @error('assigned_as') is-invalid @enderror">
+                                @error('assigned_as')
                                     <span class="invalid-feedback">{{ $message }}</span>
                                 @enderror
+                                <small class="text-muted">E.g. "Head of Finance Department"</small>
                             </div>
+
+                            {{-- Department --}}
+                            <div class="form-group">
+    <label>Department</label>
+    <select name="department_id"
+            class="form-control @error('department_id') is-invalid @enderror">
+
+        <option value="">-- Select Department --</option>
+
+        @foreach ($departments as $department)
+            <option value="{{ $department->id }}"
+                {{ old('department_id', $user->department_id) == $department->id ? 'selected' : '' }}>
+                {{ $department->name }}
+            </option>
+        @endforeach
+
+    </select>
+
+    @error('department_id')
+        <span class="invalid-feedback">{{ $message }}</span>
+    @enderror
+</div>
 
                             {{-- Password --}}
                             <div class="row">
