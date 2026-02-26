@@ -54,8 +54,8 @@ Route::middleware('auth')->group(function () {
     Route::get('leaves/onprogress', [LeaveRequestController::class,'onprogress'])->name('leaves.onprogress');
     Route::get('leaves/staff', [LeaveRequestController::class,'staff'])->name('leaves.staff');
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-    Route::put('leaves/{id}/approve', [LeaveRequestController::class,'approve'])->name('leaves.approve');
-    Route::put('leaves/{id}/reject', [LeaveRequestController::class,'reject'])->name('leaves.reject');
+    Route::patch('leaves/{id}/approve', [LeaveRequestController::class,'approve'])->name('leaves.approve');
+    Route::patch('leaves/{id}/reject', [LeaveRequestController::class,'reject'])->name('leaves.reject');
     Route::resource('leaves', LeaveRequestController::class);
 
     Route::get('leaves/{id}/download-pdf', [LeaveRequestController::class, 'downloadPDF'])
