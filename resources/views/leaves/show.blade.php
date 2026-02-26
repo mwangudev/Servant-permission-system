@@ -34,36 +34,32 @@
     position: relative;
     padding-left: 40px;
 }
-
 .timeline::before {
     content: '';
     position: absolute;
-    left: 15px;
+    left: 18px;
     top: 0;
     bottom: 0;
     width: 3px;
     background: #dee2e6;
 }
-
 .timeline-item {
     position: relative;
     margin-bottom: 35px;
 }
-
 .timeline-dot {
     position: absolute;
-    left: -27px;
-    width: 20px;
-    height: 20px;
+    left: -29px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 3px #dee2e6;
+    border: 4px solid #fff;
 }
-
 .timeline-content {
     background: #f8f9fa;
-    padding: 12px 15px;
+    padding: 14px 18px;
     border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 </style>
 
@@ -71,7 +67,7 @@
 <div class="card shadow-lg border-0">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <div>
-            <h5 class="mb-0 fw-bold">Leave Request</h5>
+            <h5 class="fw-bold mb-0">Leave Request</h5>
             <small class="text-muted">
                 Submitted {{ $leaveRequest->created_at?->diffForHumans() }}
             </small>
@@ -159,12 +155,9 @@
                                     {{ $leaveRequest->hod_signed_at?->format('d M Y H:i') }}
                                     ({{ $leaveRequest->hod_signed_at?->diffForHumans() }})
                                 </div>
-
-                                @if($leaveRequest->hod_remarks)
-                                    <div class="small mt-2">
-                                        <strong>Remarks:</strong> {{ $leaveRequest->hod_remarks }}
-                                    </div>
-                                @endif
+                                <div class="small mt-2">
+                                    {{ $leaveRequest->hod_remarks }}
+                                </div>
                             </div>
                         </div>
                     @endif
@@ -179,12 +172,9 @@
                                     {{ $leaveRequest->admin_signed_at?->format('d M Y H:i') }}
                                     ({{ $leaveRequest->admin_signed_at?->diffForHumans() }})
                                 </div>
-
-                                @if($leaveRequest->admin_remarks)
-                                    <div class="small mt-2">
-                                        <strong>Remarks:</strong> {{ $leaveRequest->admin_remarks }}
-                                    </div>
-                                @endif
+                                <div class="small mt-2">
+                                    {{ $leaveRequest->admin_remarks }}
+                                </div>
                             </div>
                         </div>
                     @endif
@@ -196,7 +186,7 @@
     </div>
 
 
-    <div class="card-footer bg-white text-end">
+    <div class="card-footer text-end bg-white">
 
         @if($canApproveOrReject)
             <button class="btn btn-success btn-sm me-2"
@@ -216,8 +206,115 @@
            class="btn btn-secondary btn-sm">
             Back
         </a>
+
     </div>
 </div>
 
 </div>
+
+
+{{-- SIGNATURE PAD LIBRARY --}}
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+
+
+{{-- APPROVE MODAL --}}
+<div class="modal fade" id="approveModal" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<form method="POST" action="{{ route('leaves.approve', $leaveRequest->id) }}">
+@csrf @method('PATCH')
+<input type="hidden" name="signature" id="approve_signature">
+
+<div class="modal-content">
+<div class="modal-header bg-success text-white">
+<h5 class="modal-title">Approve Leave</h5>
+<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+<textarea name="{{ auth()->user()->role === 'hod' ? 'hod_remarks' : 'admin_remarks' }}"
+class="form-control mb-3" placeholder="Remarks (optional)"></textarea>
+
+<canvas id="approveCanvas"
+style="width:100%;height:200px;border:1px solid #ccc;border-radius:6px;"></canvas>
+
+<button type="button" class="btn btn-sm btn-outline-secondary mt-2"
+onclick="approvePad.clear()">Clear</button>
+</div>
+
+<div class="modal-footer">
+<button type="submit" class="btn btn-success btn-sm"
+onclick="saveApprove(event)">Confirm</button>
+</div>
+</div>
+</form>
+</div>
+</div>
+
+
+
+{{-- REJECT MODAL --}}
+<div class="modal fade" id="rejectModal" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<form method="POST" action="{{ route('leaves.reject', $leaveRequest->id) }}">
+@csrf @method('PATCH')
+<input type="hidden" name="signature" id="reject_signature">
+
+<div class="modal-content">
+<div class="modal-header bg-danger text-white">
+<h5 class="modal-title">Reject Leave</h5>
+<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+<textarea required
+name="{{ auth()->user()->role === 'hod' ? 'hod_remarks' : 'admin_remarks' }}"
+class="form-control mb-3"
+placeholder="Rejection reason"></textarea>
+
+<canvas id="rejectCanvas"
+style="width:100%;height:200px;border:1px solid #ccc;border-radius:6px;"></canvas>
+
+<button type="button" class="btn btn-sm btn-outline-secondary mt-2"
+onclick="rejectPad.clear()">Clear</button>
+</div>
+
+<div class="modal-footer">
+<button type="submit" class="btn btn-danger btn-sm"
+onclick="saveReject(event)">Confirm</button>
+</div>
+</div>
+</form>
+</div>
+</div>
+
+
+<script>
+let approvePad, rejectPad;
+
+document.addEventListener("DOMContentLoaded", function () {
+    approvePad = new SignaturePad(document.getElementById('approveCanvas'));
+    rejectPad = new SignaturePad(document.getElementById('rejectCanvas'));
+});
+
+function saveApprove(e){
+    if(approvePad.isEmpty()){
+        alert("Signature required.");
+        e.preventDefault();
+        return;
+    }
+    document.getElementById('approve_signature').value =
+        approvePad.toDataURL('image/png');
+}
+
+function saveReject(e){
+    if(rejectPad.isEmpty()){
+        alert("Signature required.");
+        e.preventDefault();
+        return;
+    }
+    document.getElementById('reject_signature').value =
+        rejectPad.toDataURL('image/png');
+}
+</script>
+
 @endsection
