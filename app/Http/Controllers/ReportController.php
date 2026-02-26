@@ -46,7 +46,7 @@ class ReportController extends Controller
 
 
         // 5. Otherwise, show the web page
-        return view('admin.reports.index', compact('leaves', 'departments'));
+        return view('report.index', compact('leaves', 'departments'));
     }
 
 

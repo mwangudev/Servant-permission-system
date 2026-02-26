@@ -158,6 +158,13 @@
                     </li>
 
                     <li class="nav-item">
+                        <a href="{{ route('report.index') }}" class="nav-link {{ request()->routeIs('report.index') ? 'active' : '' }}">
+                            <i class="nav-icon fas fa-chart-bar"></i>
+                            <p style="white-space: nowrap;">Reports</p>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
                         <a href="{{ route('audit-logs.index') }}" class="nav-link {{ request()->routeIs('audit-logs.index') ? 'active' : '' }}">
                             <i class="nav-icon fas fa-history"></i>
                             <p style="white-space: nowrap;">User Log</p>

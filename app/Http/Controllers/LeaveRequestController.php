@@ -364,4 +364,6 @@ class LeaveRequestController extends Controller
         return redirect()->route('leaves.show', $leave->id)
             ->with('success', 'Leave request rejected.');
     }
+
+
 }
