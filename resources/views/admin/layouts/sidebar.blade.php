@@ -86,7 +86,20 @@
             <p>
                 Pending Leaves
                 <span class="badge bg-warning ms-2">
-                    {{ \App\Models\LeaveRequest::whereIn('status', ['pending','on_progress'])->count() }}
+                    {{ \App\Models\LeaveRequest::where('status', 'submitted')->count() }}
+                </span>
+            </p>
+        </a>
+    </li>
+    {{-- Waiting final approve // on progess leave --}}
+    <li class="nav-item">
+        <a href="{{ route('leaves.onprogress') }}"
+           class="nav-link {{ request()->routeIs('leaves.onprogress') ? 'active' : '' }}">
+            <i class="nav-icon fas fa-spinner"></i>
+            <p>
+                On Progress Leaves
+                <span class="badge bg-primary ms-2">
+                    {{ \App\Models\LeaveRequest::where('status', 'pending')->count() }}
                 </span>
             </p>
         </a>

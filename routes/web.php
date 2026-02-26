@@ -51,6 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::get('leaves/approved', [LeaveRequestController::class,'approved'])->name('leaves.approved');
     Route::get('leaves/pending', [LeaveRequestController::class,'pending'])->name('leaves.pending');
     Route::get('leaves/rejected', [LeaveRequestController::class,'rejected'])->name('leaves.rejected');
+    Route::get('leaves/onprogress', [LeaveRequestController::class,'onprogress'])->name('leaves.onprogress');
     Route::get('leaves/staff', [LeaveRequestController::class,'staff'])->name('leaves.staff');
     Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     Route::put('leaves/{id}/approve', [LeaveRequestController::class,'approve'])->name('leaves.approve');

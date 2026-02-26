@@ -85,9 +85,9 @@
         <div class="card-header bg-light d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Leave Request Details</h5>
 
-            @if($leaveRequest->admin_signature && auth()->id() === $leaveRequest->user_id)
-                <a href="{{ route('report.individual', $leaveRequest->id) }}"
-                   class="btn btn-success btn-sm">
+            @if($leaveRequest->status==='approved')
+                <a href="{{ route('leaves.downloadPDF', $leaveRequest->id) }}"
+                   class="btn btn-info btn-sm">
                     <i class="fas fa-download me-1"></i> Download PDF
                 </a>
             @endif
@@ -123,7 +123,6 @@
                         $statuses = [
                             'submitted' => ['class' => 'bg-info', 'icon' => 'fa-paper-plane'],
                             'pending' => ['class' => 'bg-warning', 'icon' => 'fa-clock'],
-                            'on_progress' => ['class' => 'bg-primary', 'icon' => 'fa-spinner'],
                             'approved' => ['class' => 'bg-success', 'icon' => 'fa-check'],
                             'rejected' => ['class' => 'bg-danger', 'icon' => 'fa-times'],
                         ];
@@ -133,7 +132,7 @@
 
                     <div class="mb-3">
                         <strong>Status:</strong>
-                        <span class="badge {{ $statusData['class'] }} px-3 py-2">
+                        <span class="badge {{ $statusData['class'] }}">
                             <i class="fas {{ $statusData['icon'] }} me-1"></i>
                             {{ strtoupper(str_replace('_', ' ', $leaveRequest->status ?? 'UNKNOWN')) }}
                         </span>
@@ -142,7 +141,7 @@
                     {{-- Approve / Reject --}}
                     @if(
                         (auth()->user()->role === 'hod'
-                            && in_array($leaveRequest->status, ['submitted','pending','on_progress']))
+                            && $leaveRequest->status === 'submitted')
                         ||
                         (auth()->user()->role === 'admin'
                             && $leaveRequest->status === 'pending')
