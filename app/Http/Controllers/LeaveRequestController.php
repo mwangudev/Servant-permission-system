@@ -278,73 +278,6 @@ class LeaveRequestController extends Controller
 
 
 
-<<<<<<< HEAD
-=======
-        $pdf = new TCPDF('P','mm','A4',true,'UTF-8',false);
-        $pdf->SetMargins(15,15,15);
-        $pdf->SetAutoPageBreak(true,15);
-        $pdf->AddPage();
-
-        $pdf->SetFont('helvetica','B',20);
-        $pdf->Cell(0,15,'MINISTRY OF HEALTH',0,1,'C');
-        $pdf->SetFont('helvetica','',12);
-        $pdf->Cell(0,10,'Leave Request Form',0,1,'C');
-        $pdf->Ln(10);
-
-        $pdf->SetFont('helvetica','B',11);
-        $pdf->Cell(0,10,'EMPLOYEE DETAILS',0,1,'L');
-        $pdf->SetFont('helvetica','',11);
-
-        $details = "Employee Name: {$leave->user->full_name}\n";
-        $details .= "Email: {$leave->user->email}\n";
-        $details .= "Department: {$leave->user->department->name}\n";
-        $details .= "Leave Type: {$leave->request_type}\n";
-        $details .= "Start Date: ".Carbon::parse($leave->start_date)->format('d M Y')."\n";
-        $details .= "End Date: ".Carbon::parse($leave->end_date)->format('d M Y')."\n";
-        $details .= "Duration: ".(Carbon::parse($leave->start_date)->diffInDays(Carbon::parse($leave->end_date))+1)." day(s)\n";
-        $details .= "Status: ".strtoupper(str_replace('_',' ',$leave->status))."\n";
-
-        $pdf->MultiCell(0,5,$details,0,'L');
-        $pdf->Ln(5);
-
-        // Signatures
-        $pdf->SetFont('helvetica','B',11);
-        $pdf->Cell(0,10,'APPROVALS',0,1,'L');
-        $pdf->SetFont('helvetica','',10);
-
-        foreach (['hod','admin'] as $role) {
-            $sigField = "{$role}_signature";
-            $remarksField = "{$role}_remarks";
-            $signedAtField = "{$role}_signed_at";
-
-            if ($leave->$sigField) {
-                $pdf->Ln(5);
-                $pdf->Cell(0,10, strtoupper($role).' Approval:',0,1);
-
-                if (strpos($leave->$sigField,'data:image')===0) {
-                    list(,$data) = explode(',', explode(';',$leave->$sigField)[1]);
-                    $data = base64_decode($data);
-                    $tmpFile = sys_get_temp_dir()."/{$role}_sig.png";
-                    file_put_contents($tmpFile,$data);
-                    $pdf->Image($tmpFile,20,$pdf->GetY(),40,20);
-                    $pdf->Ln(20);
-                    unlink($tmpFile);
-                }
-
-                if ($leave->$remarksField) $pdf->Cell(0,5,"Remarks: ".$leave->$remarksField,0,1);
-                $pdf->Cell(0,5,"Approved on: ".Carbon::parse($leave->$signedAtField)->format('d M Y H:i:s'),0,1);
-            }
-        }
-
-        $pdf->Ln(15);
-        $pdf->SetFont('helvetica','',8);
-        $pdf->Cell(0,10,'This is an electronically signed document.',0,1,'C');
-        $pdf->Cell(0,10,'Generated on: '.now()->format('d M Y H:i:s'),0,1,'C');
-
-        return $pdf->Output('leave_request_'.$leave->id.'.pdf','D');
-    }
-
->>>>>>> e394fef3e643a070c40e624698ac83d910a9a5d7
     public function approve(Request $request, $id)
     {
         $leave = LeaveRequest::with('user.department')->findOrFail($id);
@@ -424,5 +357,5 @@ class LeaveRequestController extends Controller
         return redirect()->route('leaves.show', $leave->id)->with('success','Leave request rejected.');
     }
 
-    
+
 }
