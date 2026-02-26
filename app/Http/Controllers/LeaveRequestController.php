@@ -207,12 +207,18 @@ class LeaveRequestController extends Controller
   public function downloadPDF($id)
 {
     $leaveRequest = LeaveRequest::with('user.department')->findOrFail($id);
+    $lastLeave = LeaveRequest::where('user_id', $leaveRequest->user_id)
+        ->where('id', '<', $leaveRequest->id)
+        ->where('start_date', '<', $leaveRequest->start_date)
+        ->whereIn('status', ['approved', 'rejected']) //
+        ->orderBy('start_date', 'desc')
+        ->first();
 
     if ($leaveRequest->status !== 'approved') {
         abort(403, 'Only approved leaves can be downloaded as PDF.');
     }
 
-    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('leaves.pdf', compact('leaveRequest'));
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('leaves.pdf', compact('leaveRequest','lastLeave'));
 
     return $pdf->download("leave_request_{$id}.pdf");
 }

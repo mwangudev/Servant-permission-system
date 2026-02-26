@@ -1,183 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sw">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave Request - {{ $leaveRequest->id }}</title>
+    <title>Taarifa ya Kuwa Nje ya Kituo</title>
     <style>
-        body {
-            font-family: 'DejaVu Sans', 'Helvetica', sans-serif;
-            font-size: 12pt;
-            margin: 0;
-            padding: 0;
-            color: #333;
-        }
-        .container {
-            width: 90%;
-            margin: 30px auto;
-        }
-        .header {
-            text-align: center;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 15px;
-            margin-bottom: 30px;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 22pt;
-            color: #007bff;
-        }
-        .header p {
-            margin: 5px 0 0;
-            font-size: 11pt;
-            color: #555;
-        }
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 25px;
-        }
-        .info-table th, .info-table td {
-            border: 1px solid #ddd;
-            padding: 10px 12px;
-            text-align: left;
-        }
-        .info-table th {
-            background-color: #f8f9fa;
-            width: 30%;
-            font-weight: bold;
-        }
-        .section-title {
-            font-size: 14pt;
-            font-weight: bold;
-            margin: 25px 0 10px;
-            color: #333;
-            border-left: 4px solid #007bff;
-            padding-left: 10px;
-        }
-        .signature-area {
-            margin-top: 50px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .signature {
-            text-align: center;
-            width: 45%;
-        }
-        .signature img {
-            max-width: 180px;
-            max-height: 80px;
-            margin-bottom: 8px;
-        }
-        .signature-line {
-            border-top: 1px solid #333;
-            width: 80%;
-            margin: 10px auto 5px;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 60px;
-            font-size: 10pt;
-            color: #777;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
-        }
-        @page {
-            margin: 1.5cm 1.2cm;
-        }
+        body { font-family: 'Helvetica', Arial, sans-serif; font-size: 14px; line-height: 1.6; }
+        .text-center { text-align: center; }
+        .bold { font-weight: bold; }
+        .section-title { font-weight: bold; margin-top: 20px; text-decoration: underline; }
+        .dotted-line { border-bottom: 1px dotted #000; display: inline-block; min-width: 150px; }
+        .signature-img { max-height: 40px; margin-bottom: -10px; }
+        .mt-3 { margin-top: 15px; }
     </style>
 </head>
 <body>
 
-<div class="container">
+    <h3 class="text-center bold">WIZARA YA AFYA</h3>
+    <h4 class="text-center bold" style="text-decoration: underline;">TAARIFA YA KUWA NJE YA KITUO</h4>
 
-    <div class="header">
-        <h1>LEAVE REQUEST APPROVAL</h1>
-        <p>Official Document • Reference No: LR-{{ str_pad($leaveRequest->id, 5, '0', STR_PAD_LEFT) }}</p>
+    <div class="section-title">SEHEMU A: (IJAZWE NA MTUMISHI ANAYEOMBA RUHUSA)</div>
+    <div class="mt-3">
+        1. (a) Mimi <span class="dotted-line">{{ $leaveRequest->user->fname ?? '..................................' }}</span>
+        wa Idara/Kitengo <span class="dotted-line">{{ $leaveRequest->user->department->name ?? '..................................' }}</span>
+        Cheo <span class="dotted-line">{{ $leaveRequest->user->role ?? '..................................' }}</span>
+        naomba ruhusa ya kuwa nje ya kituo cha kazi kikazi/shughuli binafsi kwa siku <span class="dotted-line">{{ $leaveRequest->duration ?? '..........' }}</span>
+        kuanzia tarehe <span class="dotted-line">{{ $leaveRequest->start_date ?? '........................' }}</span>
+        hadi tarehe <span class="dotted-line">{{ $leaveRequest->end_date ?? '........................' }}</span>.
     </div>
 
-    <table class="info-table">
-        <tr>
-            <th>Employee Name</th>
-            <td>{{ $leaveRequest->user->full_name ?? $leaveRequest->user->name ?? 'N/A' }}</td>
-        </tr>
-        <tr>
-            <th>Employee ID / Email</th>
-            <td>{{ $leaveRequest->user->employee_id ?? '—' }} • {{ $leaveRequest->user->email }}</td>
-        </tr>
-        <tr>
-            <th>Department</th>
-            <td>{{ $leaveRequest->user->department->name ?? 'Not Assigned' }}</td>
-        </tr>
-        <tr>
-            <th>Leave Type</th>
-            <td>{{ ucfirst(str_replace('_', ' ', $leaveRequest->request_type)) }}</td>
-        </tr>
-        <tr>
-            <th>Duration</th>
-            <td>
-                From: {{ \Carbon\Carbon::parse($leaveRequest->start_date)->format('d M Y') }}<br>
-                To: {{ \Carbon\Carbon::parse($leaveRequest->end_date)->format('d M Y') }}<br>
-                <strong>Total Days:</strong> {{ \Carbon\Carbon::parse($leaveRequest->start_date)->diffInDays(\Carbon\Carbon::parse($leaveRequest->end_date)) + 1 }}
-            </td>
-        </tr>
-        <tr>
-            <th>Reason / Destination</th>
-            <td>{{ $leaveRequest->reasons ?? 'No reason provided' }} {!! $leaveRequest->destination ? '<br><strong>Destination:</strong> ' . $leaveRequest->destination : '' !!}</td>
-        </tr>
-        <tr>
-            <th>Submitted On</th>
-            <td>{{ \Carbon\Carbon::parse($leaveRequest->created_at)->format('d M Y H:i') }}</td>
-        </tr>
-        <tr>
-            <th>Status</th>
-            <td>
-                <strong style="color: #28a745;">APPROVED</strong><br>
-                Finalized on: {{ \Carbon\Carbon::parse($leaveRequest->admin_signed_at ?? $leaveRequest->updated_at)->format('d M Y') }}
-            </td>
-        </tr>
-    </table>
-
-    <div class="section-title">Supporting Document / Remarks</div>
-    <p style="line-height: 1.6;">
-        {{ $leaveRequest->hod_remarks ?? 'No HOD remarks.' }}<br><br>
-        {{ $leaveRequest->admin_remarks ?? 'No Admin remarks.' }}
-    </p>
-
-    @if($leaveRequest->report_path)
-        <p><em>Supporting document uploaded: Yes (viewable in system)</em></p>
-    @endif
-
-    <div class="signature-area">
-        <div class="signature">
-            <strong>HOD / Supervisor</strong><br>
-            @if($leaveRequest->hod_signature)
-                <img src="{{ public_path('storage/' . $leaveRequest->hod_signature) }}" alt="HOD Signature">
-            @else
-                <div style="height: 60px;"></div>
-            @endif
-            <div class="signature-line"></div>
-            <p>{{ $leaveRequest->user->department->hod->name ?? 'Head of Department' }}<br>Date: {{ $leaveRequest->hod_signed_at ? \Carbon\Carbon::parse($leaveRequest->hod_signed_at)->format('d M Y') : '—' }}</p>
-        </div>
-
-        <div class="signature">
-            <strong>Admin / Authorized Officer</strong><br>
-            @if($leaveRequest->admin_signature)
-                <img src="{{ public_path('storage/' . $leaveRequest->admin_signature) }}" alt="Admin Signature">
-            @else
-                <div style="height: 60px;"></div>
-            @endif
-            <div class="signature-line"></div>
-            <p>Administration Department<br>Date: {{ $leaveRequest->admin_signed_at ? \Carbon\Carbon::parse($leaveRequest->admin_signed_at)->format('d M Y') : '—' }}</p>
-        </div>
+    <div class="mt-3">
+        (b) Taja sababu ya kuwa nje ya kituo cha kazi: <br>
+        <span class="dotted-line" style="width: 100%;">{{ $leaveRequest->reasons ?? '............................................................................................................' }}</span>
     </div>
 
-    <div class="footer">
-        This is an officially approved leave request generated by the system.<br>
-        For verification, contact HR/Admin. • Confidential • {{ now()->format('Y') }}
+    <div class="mt-3">
+        (c) Ruhusa ya mwisho nilipata tarehe
+        <span class="dotted-line">
+            {{ $lastLeave ? \Carbon\Carbon::parse($lastLeave->start_date)->format('Y/m/d') : 'Hakuna' }}
+        </span>
+        mpaka tarehe
+        <span class="dotted-line">
+            {{ $lastLeave ? \Carbon\Carbon::parse($lastLeave->end_date)->format('Y/m/d') : 'Hakuna' }}
+        </span>
+        ilikuwa ruhusa ya
+        <span class="dotted-line">
+            {{ $lastLeave ? ucfirst($lastLeave->request_type) : 'Hakuna' }}
+        </span>.
+        Kama ni safari ya kikazi eleza kazi uliyoenda kufanya na ambatanisha nakala ya taarifa ya safari husika uliyowasilisha kwa mamlaka iliyokutuma.
     </div>
 
-</div>
+    <div class="mt-3">
+        Sahihi <span class="dotted-line">........................</span>
+        Cheo <span class="dotted-line">........................</span>
+        Tarehe <span class="dotted-line">{{ $leaveRequest->created_at->format('d/m/Y') }}</span>
+    </div>
+
+    <div class="section-title">SEHEMU B: (IJAZWE NA MKUU WA IDARA/KITENGO)</div>
+    <div class="mt-3">
+        2.(a) Siidhinishi/Naidhinisha ombi kwa sababu zifuatazo: <br>
+        <span class="dotted-line" style="width: 100%;">{{ $leaveRequest->hod_remarks ?? '............................................................................................................' }}</span>
+    </div>
+
+    <div class="mt-3">
+        (b) Nathibitisha kuwa mhusika amewasilisha na kuambatanisha taarifa ya safari na utekelezaji wa maagizo/hoja zilizojitokeza kwa safari aliyoenda mara ya mwisho.
+    </div>
+
+    <div class="mt-3">
+        Sahihi
+        @if($leaveRequest->hod_signature)
+            <img src="{{ public_path($leaveRequest->hod_signature) }}" class="signature-img">
+        @else
+            <span class="dotted-line">........................</span>
+        @endif
+        Cheo <span class="dotted-line">Mkuu wa Idara</span>
+        Tarehe <span class="dotted-line">{{ $leaveRequest->hod_signed_at ?? '........................' }}</span>
+    </div>
+
+    <div class="section-title">SEHEMU C: (IDHINI YA AFISA MWAJIRI/AFISA MWANDAMIZI ALIYEKASIMIWA MAMLAKA)</div>
+    <div class="mt-3">
+        a) Siidhinishi/Naidhinisha ombi kwa sababu zifuatazo: <br>
+        <span class="dotted-line" style="width: 100%;">{{ $leaveRequest->admin_remarks ?? '............................................................................................................' }}</span>
+    </div>
+
+    <div class="mt-3">
+        Sahihi
+        @if($leaveRequest->admin_signature)
+            <img src="{{ public_path($leaveRequest->admin_signature) }}" class="signature-img">
+        @else
+            <span class="dotted-line">........................</span>
+        @endif
+        Cheo <span class="dotted-line">Afisa Mwajiri</span>
+        Tarehe <span class="dotted-line">{{ $leaveRequest->admin_signed_at ?? '........................' }}</span>
+    </div>
 
 </body>
 </html>
