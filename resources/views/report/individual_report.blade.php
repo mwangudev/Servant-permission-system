@@ -21,7 +21,7 @@
     <div class="section-title">SEHEMU A: (IJAZWE NA MTUMISHI ANAYEOMBA RUHUSA)</div>
     <div class="mt-3">
         1. (a) Mimi <span class="dotted-line">{{ $leaveRequest->user->fname ?? '..................................' }}</span>
-        wa Idara/Kitengo <span class="dotted-line">{{ $leaveRequest->user->department ?? '..................................' }}</span>
+        wa Idara/Kitengo <span class="dotted-line">{{ $leaveRequest->user->department->name ?? '..................................' }}</span>
         Cheo <span class="dotted-line">{{ $leaveRequest->user->role ?? '..................................' }}</span>
         naomba ruhusa ya kuwa nje ya kituo cha kazi kikazi/shughuli binafsi kwa siku <span class="dotted-line">{{ $leaveRequest->duration ?? '..........' }}</span>
         kuanzia tarehe <span class="dotted-line">{{ $leaveRequest->start_date ?? '........................' }}</span>

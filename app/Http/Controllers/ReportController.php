@@ -53,12 +53,13 @@ class ReportController extends Controller
     public function individualreport($id){
         $leaveRequest = LeaveRequest::findorFail($id);
         $lastLeave = LeaveRequest::where('user_id', $leaveRequest->user_id)
-        ->where('id', '!=', $leaveRequest->id)
+        ->where('id', '<', $leaveRequest->id)
         ->where('start_date', '<', $leaveRequest->start_date)
         ->whereIn('status', ['approved', 'rejected']) //
         ->orderBy('start_date', 'desc')
         ->first();
 
+        
         //create pdf according to the view
         $pdf = Pdf::loadView('report.individual_report', compact('leaveRequest', 'lastLeave'));
 
