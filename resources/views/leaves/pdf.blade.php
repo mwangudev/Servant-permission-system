@@ -22,7 +22,7 @@
     <div class="mt-3">
         1. (a) Mimi <span class="dotted-line">{{ $leaveRequest->user->fname ?? '..................................' }}</span>
         wa Idara/Kitengo <span class="dotted-line">{{ $leaveRequest->user->department->name ?? '..................................' }}</span>
-        Cheo <span class="dotted-line">{{ $leaveRequest->user->role ?? '..................................' }}</span>
+        Cheo <span class="dotted-line">{{ $leaveRequest->user->assigned_as ?? '..................................' }}</span>
         naomba ruhusa ya kuwa nje ya kituo cha kazi kikazi/shughuli binafsi kwa siku <span class="dotted-line">{{ $leaveRequest->duration ?? '..........' }}</span>
         kuanzia tarehe <span class="dotted-line">{{ $leaveRequest->start_date ?? '........................' }}</span>
         hadi tarehe <span class="dotted-line">{{ $leaveRequest->end_date ?? '........................' }}</span>.
@@ -67,13 +67,18 @@
 
     <div class="mt-3">
         Sahihi
-        @if($leaveRequest->hod_signature)
-            <img src="{{ public_path($leaveRequest->hod_signature) }}" class="signature-img">
+        {{-- KODI MPYA YA BASE 64 KWA HOD --}}
+        @if($leaveRequest->hod_signature && file_exists(public_path($leaveRequest->hod_signature)))
+            @php
+                $hodImgData = base64_encode(file_get_contents(public_path($leaveRequest->hod_signature)));
+            @endphp
+            <img src="data:image/png;base64,{{ $hodImgData }}" class="signature-img">
         @else
             <span class="dotted-line">........................</span>
         @endif
+
         Cheo <span class="dotted-line">Mkuu wa Idara</span>
-        Tarehe <span class="dotted-line">{{ $leaveRequest->hod_signed_at ?? '........................' }}</span>
+        Tarehe <span class="dotted-line">{{ $leaveRequest->hod_signed_at ? \Carbon\Carbon::parse($leaveRequest->hod_signed_at)->format('d/m/Y') : '........................' }}</span>
     </div>
 
     <div class="section-title">SEHEMU C: (IDHINI YA AFISA MWAJIRI/AFISA MWANDAMIZI ALIYEKASIMIWA MAMLAKA)</div>
@@ -84,13 +89,18 @@
 
     <div class="mt-3">
         Sahihi
-        @if($leaveRequest->admin_signature)
-            <img src="{{ public_path($leaveRequest->admin_signature) }}" class="signature-img">
+        {{-- KODI MPYA YA BASE 64 KWA ADMIN --}}
+        @if($leaveRequest->admin_signature && file_exists(public_path($leaveRequest->admin_signature)))
+            @php
+                $adminImgData = base64_encode(file_get_contents(public_path($leaveRequest->admin_signature)));
+            @endphp
+            <img src="data:image/png;base64,{{ $adminImgData }}" class="signature-img">
         @else
             <span class="dotted-line">........................</span>
         @endif
-        Cheo <span class="dotted-line">Afisa Mwajiri</span>
-        Tarehe <span class="dotted-line">{{ $leaveRequest->admin_signed_at ?? '........................' }}</span>
+
+        Cheo <span class="dotted-line">fisa Mwajiri</span>
+        Tarehe <span class="dotted-line">{{ $leaveRequest->admin_signed_at ? \Carbon\Carbon::parse($leaveRequest->admin_signed_at)->format('d/m/Y') : '........................' }}</span>
     </div>
 
 </body>
