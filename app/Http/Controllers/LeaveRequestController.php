@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
 
 class LeaveRequestController extends Controller
 {
@@ -247,6 +248,10 @@ class LeaveRequestController extends Controller
         return $pdf->download("leave_request_{$id}.pdf");
     }
 
+
+
+    // ... kodi zingine ...
+
     public function approve(Request $request, $id)
     {
         $leave = LeaveRequest::findOrFail($id);
@@ -260,16 +265,32 @@ class LeaveRequestController extends Controller
             abort(403);
         }
 
+        // 1. 'signature' isnot 'file', is 'string' (Base64 text)
         $validated = $request->validate([
-            'signature_file' => 'nullable|file|mimes:png,jpg,jpeg|max:2048',
+            'signature'      => 'nullable|string',
             'hod_remarks'    => 'nullable|string|max:1500',
             'admin_remarks'  => 'nullable|string|max:1500',
         ]);
 
+        // 2. Change Base64 Text to image (.png)
         $signaturePath = null;
-        if ($request->hasFile('signature_file')) {
-            $signaturePath = $request->file('signature_file')->store('signatures', 'public');
+        if ($request->filled('signature')) {
+            $image_parts = explode(";base64,", $request->signature);
+
+            if (count($image_parts) == 2) {
+                $image_type_aux = explode("image/", $image_parts[0]);
+                $image_type = $image_type_aux[1]; // inatafuta kama ni png
+                $image_base64 = base64_decode($image_parts[1]);
+
+                // Tengeneza jina la faili
+                $fileName = 'signature_' . $user->role . '_' . time() . '.' . $image_type;
+                $signaturePath = 'signatures/leaves/' . $fileName;
+
+                // Save in storage (storage/app/public/signatures/leaves/)
+                Storage::disk('public')->put($signaturePath, $image_base64);
+            }
         }
+
 
         DB::transaction(function () use ($leave, $user, $validated, $signaturePath, $request) {
             $remarksKey = $user->role === 'hod' ? 'hod_remarks' : 'admin_remarks';
@@ -284,7 +305,7 @@ class LeaveRequestController extends Controller
 
                 $updateData = [
                     'status'         => 'pending',
-                    'hod_signature'  => $signaturePath,
+                    'hod_signature'  => $signaturePath, // Hapa inasave ile njia (path) kwenye DB
                     'hod_signed_at'  => now(),
                 ];
 
@@ -300,7 +321,7 @@ class LeaveRequestController extends Controller
 
                 $updateData = [
                     'status'          => 'approved',
-                    'admin_signature' => $signaturePath,
+                    'admin_signature' => $signaturePath, // Hapa inasave ile njia (path) kwenye DB
                     'admin_signed_at' => now(),
                 ];
 
@@ -336,6 +357,7 @@ class LeaveRequestController extends Controller
         return redirect()->route('leaves.show', $leave->id)
             ->with('success', $message);
     }
+
 
     public function onprogress()
     {

@@ -68,9 +68,16 @@
        BASE64 SIGNATURES
     ============================*/
 
+    /* ===========================
+       BASE64 SIGNATURES
+    ============================*/
+
     $hodBase64 = null;
     if ($leaveRequest->hod_signature) {
-        $hodPath = public_path($leaveRequest->hod_signature);
+        // Tunatoa neno 'storage/' kama lipo kwenye DB, kisha tunatafuta faili moja kwa moja kwenye hard disk
+        $cleanHodPath = str_replace('storage/', '', $leaveRequest->hod_signature);
+        $hodPath = storage_path('app/public/' . $cleanHodPath);
+
         if (file_exists($hodPath)) {
             $type = pathinfo($hodPath, PATHINFO_EXTENSION);
             $data = file_get_contents($hodPath);
@@ -80,7 +87,9 @@
 
     $adminBase64 = null;
     if ($leaveRequest->admin_signature) {
-        $adminPath = public_path($leaveRequest->admin_signature);
+        $cleanAdminPath = str_replace('storage/', '', $leaveRequest->admin_signature);
+        $adminPath = storage_path('app/public/' . $cleanAdminPath);
+
         if (file_exists($adminPath)) {
             $type = pathinfo($adminPath, PATHINFO_EXTENSION);
             $data = file_get_contents($adminPath);
@@ -97,16 +106,14 @@
 
 
 <div class="section-title">
-    SEHEMU A: (IJAZWE NA MTUMISHI ANAYEOMBA RUHUSA)
+    SEHEMU A: (TAARIFA YA RUHUSA)
 </div>
 
 <div class="mt-3">
     1. (a) Mimi
     <span class="field-value">{{ $fullName ?? '......................' }}</span>
-    wa Idara/Kitengo
+    wa Idara/Kitengo cha
     <span class="field-value">{{ $department?->name ?? '......................' }}</span>
-    Cheo
-    <span class="field-value">{{ $user?->assigned_as ?? '......................' }}</span>
     naomba ruhusa ya kuwa nje ya kituo cha kazi kwa siku
     <span class="field-value">{{ $days ?? '..........' }}</span>
     kuanzia tarehe
@@ -147,14 +154,14 @@
     Sahihi
     <span class="field-value">........................</span>
     Cheo
-    <span class="field-value">{{ $user?->assigned_as ?? '........................' }}</span>
+    <span class="field-value">Mwajiriwap</span>
     Tarehe
     <span class="field-value">{{ $createdDate ?? '........................' }}</span>
 </div>
 
 
 <div class="section-title">
-    SEHEMU B: (IJAZWE NA MKUU WA IDARA/KITENGO)
+    SEHEMU B: (IMEIDHINISHWA NA MKUU WA IDARA/KITENGO)
 </div>
 
 <div class="mt-3">
