@@ -244,8 +244,8 @@ class LeaveRequestController extends Controller
         }
 
         $pdf = Pdf::loadView('leaves.pdf', compact('leaveRequest', 'lastLeave'));
-
-        return $pdf->download("leave_request_{$id}.pdf");
+        $unique = date('Ymd_His') . '_' . mt_rand(1000,9999);
+        return $pdf->download("{$leaveRequest->user->full_name}_{$unique}.pdf");
     }
 
 

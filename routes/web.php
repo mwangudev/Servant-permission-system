@@ -59,7 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('leaves', LeaveRequestController::class);
 
     Route::get('leaves/{id}/download-pdf', [LeaveRequestController::class, 'downloadPDF'])
-        ->name('leaves.downloadPDF');
+        ->name('leaves.download');
 
     Route::resource('users', UserController::class);
 

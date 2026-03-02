@@ -76,6 +76,12 @@
         <span class="badge bg-{{ $statusColors[$leaveRequest->status] ?? 'secondary' }} px-3 py-2">
             {{ strtoupper($leaveRequest->status) }}
         </span>
+        {{-- Download Pdf --}}
+        @if($leaveRequest->status === 'approved')
+        <a href="{{ route('leaves.download', $leaveRequest->id) }}" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-download"></i> Download PDF
+        </a>
+        @endif
     </div>
 
     <div class="card-body">
