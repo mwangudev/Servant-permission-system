@@ -40,7 +40,7 @@ class ReportController extends Controller
 
         // 4. Check if "Export PDF" button was clicked
         if ($request->has('export_pdf')) {
-            $pdf = Pdf::loadView('pdf.general_report', compact('leaves'));
+            $pdf = Pdf::loadView('report.general_report', compact('leaves'));
             return $pdf->download('leave_report.pdf');
         }
 
@@ -59,7 +59,7 @@ class ReportController extends Controller
         ->orderBy('start_date', 'desc')
         ->first();
 
-        
+
         //create pdf according to the view
         $pdf = Pdf::loadView('report.individual_report', compact('leaveRequest', 'lastLeave'));
 

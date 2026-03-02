@@ -154,7 +154,7 @@
     Sahihi
     <span class="field-value">........................</span>
     Cheo
-    <span class="field-value">Mwajiriwap</span>
+    <span class="field-value">Mwajiriwa</span>
     Tarehe
     <span class="field-value">{{ $createdDate ?? '........................' }}</span>
 </div>
