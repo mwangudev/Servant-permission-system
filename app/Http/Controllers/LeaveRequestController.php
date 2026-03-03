@@ -109,18 +109,30 @@ class LeaveRequestController extends Controller
         $leave = LeaveRequest::findOrFail($id);
         $user  = Auth::user();
 
-        if (!in_array($user->role, ['hod', 'admin'])) abort(403);
+        // Check role
+        if (!in_array($user->role, ['hod', 'admin'])) {
+            abort(403);
+        }
+
+        // HOD cannot approve outside their department
         if ($user->role === 'hod' && $leave->user->department_id !== $user->department_id) {
             return back()->with('error', 'Cannot approve leaves outside your department.');
         }
 
+        // Check if user has a signature
+        if (empty($user->signature)) {
+            return redirect()->route('profile.edit')
+                ->with('error', 'You must upload a digital signature before approving leaves.');
+        }
+
         $validated = $request->validate([
-            'remarks'   => 'nullable|string|max:1500',
+            'remarks' => 'nullable|string|max:1500',
         ]);
 
         DB::transaction(function () use ($leave, $user, $validated, $request) {
             $action = $user->role === 'hod' ? 'hod_approved' : 'admin_approved';
 
+            // Ensure leave is in correct state
             if ($user->role === 'hod' && $leave->status !== 'submitted') {
                 throw new \Exception('Leave must be submitted to be approved by HOD.');
             }
@@ -132,14 +144,17 @@ class LeaveRequestController extends Controller
             $leave->status = $user->role === 'hod' ? 'pending' : 'approved';
             $leave->save();
 
-            // Record in leave_histories
+            // Insert into leave_histories
             LeaveHistory::create([
                 'leave_request_id' => $leave->id,
                 'user_id'          => $user->id,
                 'action'           => $action,
                 'remarks'          => $validated['remarks'] ?? 'No remarks provided',
+                'created_at'=> now(),
+                'updated_at'=> now(),
             ]);
 
+            // Insert into audit log
             AuditLog::create([
                 'user_id'     => $user->id,
                 'action'      => 'approve',
@@ -156,7 +171,6 @@ class LeaveRequestController extends Controller
         return redirect()->route('leaves.show', $leave->id)
             ->with('success', $message);
     }
-
     public function reject(Request $request, $id)
     {
         $leave = LeaveRequest::findOrFail($id);
@@ -180,6 +194,8 @@ class LeaveRequestController extends Controller
                 'user_id'          => $user->id,
                 'action'           => 'rejected',
                 'remarks'          => $validated['remarks'] ?? 'No rejection reason provided',
+                'created_at'      => now(),
+                'updated_at'      => now(),
             ]);
 
             AuditLog::create([

@@ -35,9 +35,7 @@
     $user = $leaveRequest->user;
     $department = $user?->department;
 
-    $fullName = $user
-        ? trim($user->fname.' '.$user->mname.' '.$user->lname)
-        : null;
+    $fullName = $user ? trim($user->fname.' '.$user->mname.' '.$user->lname) : null;
 
     $days = ($leaveRequest->start_date && $leaveRequest->end_date)
         ? \Carbon\Carbon::parse($leaveRequest->start_date)
@@ -53,73 +51,54 @@
         : null;
 
     $createdDate = $leaveRequest->created_at
-        ? $leaveRequest->created_at->format('d/m/Y')
+        ? $leaveRequest->created_at->format('d/m/Y H:i')
         : null;
 
-    $hodSignedDate = $leaveRequest->hod_signed_at
-        ? \Carbon\Carbon::parse($leaveRequest->hod_signed_at)->format('d/m/Y')
-        : null;
+    // HOD and Admin histories
+    $hodHistory = $leaveRequest->leavehistories
+        ->where('user.role', 'hod')
+        ->sortByDesc('created_at')
+        ->first();
 
-    $adminSignedDate = $leaveRequest->admin_signed_at
-        ? \Carbon\Carbon::parse($leaveRequest->admin_signed_at)->format('d/m/Y')
-        : null;
+    $adminHistory = $leaveRequest->leavehistories
+        ->where('user.role', 'admin')
+        ->sortByDesc('created_at')
+        ->first();
 
-    /* ===========================
-       BASE64 SIGNATURES
-    ============================*/
-
-    /* ===========================
-       BASE64 SIGNATURES
-    ============================*/
-
-    $hodBase64 = null;
-    if ($leaveRequest->hod_signature) {
-        // Tunatoa neno 'storage/' kama lipo kwenye DB, kisha tunatafuta faili moja kwa moja kwenye hard disk
-        $cleanHodPath = str_replace('storage/', '', $leaveRequest->hod_signature);
-        $hodPath = storage_path('app/public/' . $cleanHodPath);
-
-        if (file_exists($hodPath)) {
-            $type = pathinfo($hodPath, PATHINFO_EXTENSION);
-            $data = file_get_contents($hodPath);
-            $hodBase64 = 'data:image/'.$type.';base64,'.base64_encode($data);
+    function getBase64Signature($path) {
+        if(!$path) return null;
+        $cleanPath = str_replace('storage/', '', $path);
+        $fullPath = storage_path('app/public/' . $cleanPath);
+        if(file_exists($fullPath)){
+            $type = pathinfo($fullPath, PATHINFO_EXTENSION);
+            $data = file_get_contents($fullPath);
+            return 'data:image/'.$type.';base64,'.base64_encode($data);
         }
+        return null;
     }
 
-    $adminBase64 = null;
-    if ($leaveRequest->admin_signature) {
-        $cleanAdminPath = str_replace('storage/', '', $leaveRequest->admin_signature);
-        $adminPath = storage_path('app/public/' . $cleanAdminPath);
+    $hodBase64 = getBase64Signature($hodHistory?->user?->signature);
+    $adminBase64 = getBase64Signature($adminHistory?->user?->signature);
 
-        if (file_exists($adminPath)) {
-            $type = pathinfo($adminPath, PATHINFO_EXTENSION);
-            $data = file_get_contents($adminPath);
-            $adminBase64 = 'data:image/'.$type.';base64,'.base64_encode($data);
-        }
-    }
+    // Labels for remarks
+    $hodLabel = ($leaveRequest->status === 'pending') ? 'Naidhinisha' : 'Siidhinishi';
+    $adminLabel = ($leaveRequest->status === 'approved') ? 'Naidhinisha' : 'Siidhinishi';
 @endphp
-
 
 <h3 class="text-center bold">WIZARA YA AFYA</h3>
 <h4 class="text-center bold" style="text-decoration: underline;">
     TAARIFA YA KUWA NJE YA KITUO
 </h4>
 
-
-<div class="section-title">
-    SEHEMU A: (TAARIFA YA RUHUSA)
-</div>
-
+{{-- SEHEMU A --}}
+<div class="section-title">SEHEMU A: (TAARIFA YA RUHUSA)</div>
 <div class="mt-3">
-    1. (a) Mimi
-    <span class="field-value">{{ $fullName ?? '......................' }}</span>
-    wa Idara/Kitengo cha
-    <span class="field-value">{{ $department?->name ?? '......................' }}</span>
+    1. (a) Mimi <span class="field-value">{{ $fullName ?? '......................' }}</span>
+    wa Idara/Kitengo cha <span class="field-value">{{ $department?->name ?? '......................' }}</span>
     naomba ruhusa ya kuwa nje ya kituo cha kazi kwa siku
     <span class="field-value">{{ $days ?? '..........' }}</span>
-    kuanzia tarehe
-    <span class="field-value">{{ $startDate ?? '......................' }}</span>
-    hadi tarehe
-    <span class="field-value">{{ $endDate ?? '......................' }}</span>.
+    kuanzia tarehe <span class="field-value">{{ $startDate ?? '......................' }}</span>
+    hadi tarehe <span class="field-value">{{ $endDate ?? '......................' }}</span>.
 </div>
 
 <div class="mt-3">
@@ -130,47 +109,17 @@
 </div>
 
 <div class="mt-3">
-    (c) Ruhusa ya mwisho nilipata tarehe
-    <span class="field-value">
-        {{ $lastLeave?->start_date
-            ? \Carbon\Carbon::parse($lastLeave->start_date)->format('d/m/Y')
-            : '.....................' }}
-    </span>
-    mpaka tarehe
-    <span class="field-value">
-        {{ $lastLeave?->end_date
-            ? \Carbon\Carbon::parse($lastLeave->end_date)->format('d/m/Y')
-            : '......................' }}
-    </span>
-    ilikuwa ruhusa ya
-    <span class="field-value">
-        {{ $lastLeave?->request_type
-            ? ucfirst($lastLeave->request_category).'('.ucfirst($lastLeave->request_type).')'
-            : '.....................' }}
-    </span>.
+    Sahihi <span class="field-value">........................</span>
+    Cheo <span class="field-value">{{ $user->assigned_as ?? '.....................' }}</span>
+    Tarehe <span class="field-value">{{ $createdDate ?? '........................' }}</span>
 </div>
 
+{{-- SEHEMU B: HOD --}}
+<div class="section-title">SEHEMU B: (IMEIDHINISHWA NA MKUU WA IDARA/KITENGO)</div>
 <div class="mt-3">
-    Sahihi
-    <span class="field-value">........................</span>
-    Cheo
-    <span class="field-value">Mwajiriwa</span>
-    Tarehe
-    <span class="field-value">{{ $createdDate ?? '........................' }}</span>
+    2.(a) {{ $hodLabel }} ombi kwa sababu zifuatazo:
+    <span class="field-value">{{ $hodHistory?->remarks ?? '.............................................................................' }}</span>
 </div>
-
-
-<div class="section-title">
-    SEHEMU B: (IMEIDHINISHWA NA MKUU WA IDARA/KITENGO)
-</div>
-
-<div class="mt-3">
-    2.(a) Siidhinishi/Naidhinisha ombi kwa sababu zifuatazo: <br>
-    <span class="field-value">
-        {{ $leaveRequest->hod_remarks ?? '.............................................................................' }}
-    </span>
-</div>
-
 <div class="mt-3">
     Sahihi
     @if($hodBase64)
@@ -178,31 +127,16 @@
     @else
         <span class="field-value">........................</span>
     @endif
-
-    Cheo <span class="field-value">Mkuu wa Idara</span>
-    Tarehe
-    <span class="field-value">{{ $hodSignedDate ?? '........................' }}</span>
+    Cheo <span class="field-value">{{ $hodHistory?->user?->assigned_as ?? '.....................' }}</span>
+    Tarehe <span class="field-value">{{ $hodHistory?->created_at ? $hodHistory->created_at->format('d/m/Y H:i') : '........................' }}</span>
 </div>
 
-
-<div class="section-title">
-    SEHEMU C: (IDHINI YA AFISA MWAJIRI)
-</div>
-
+{{-- SEHEMU C: ADMIN --}}
+<div class="section-title">SEHEMU C: (IDHINI YA AFISA MWAJIRI)</div>
 <div class="mt-3">
-    @if($leaveRequest->status === 'approved')
-        Naidhinisha ombi kwa sababu zifuatazo:
-        <span class="field-value">
-            {{ $leaveRequest->admin_remarks ?? '.............................................................................' }}
-        </span>
-    @elseif($leaveRequest->status === 'rejected')
-        Siidhinishi ombi kwa sababu zifuatazo: <br>
-        <span class="field-value">
-            {{ $leaveRequest->admin_remarks ?? '.............................................................................' }}
-        </span>
-    @endif
+    {{ $adminLabel }} ombi kwa sababu zifuatazo:
+    <span class="field-value">{{ $adminHistory?->remarks ?? '.............................................................................' }}</span>
 </div>
-
 <div class="mt-3">
     Sahihi
     @if($adminBase64)
@@ -210,10 +144,8 @@
     @else
         <span class="field-value">........................</span>
     @endif
-
-    Cheo <span class="field-value">Afisa Mwajiri</span>
-    Tarehe
-    <span class="field-value">{{ $adminSignedDate ?? '........................' }}</span>
+    Cheo <span class="field-value">{{ $adminHistory?->user?->assigned_as ?? '.....................' }}</span>
+    Tarehe <span class="field-value">{{ $adminHistory?->created_at ? $adminHistory->created_at->format('d/m/Y H:i') : '........................' }}</span>
 </div>
 
 </body>

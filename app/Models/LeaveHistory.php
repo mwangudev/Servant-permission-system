@@ -16,12 +16,6 @@ class LeaveHistory extends Model
         'created_at',
     ];
     public $timestamps = false;
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
@@ -30,5 +24,9 @@ class LeaveHistory extends Model
     public function leaveRequest()
     {
         return $this->belongsTo(LeaveRequest::class);
+    }
+
+    public function user(){
+        return $this->belongsTo(User::class);
     }
 }

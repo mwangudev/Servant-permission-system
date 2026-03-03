@@ -82,4 +82,9 @@ class LeaveRequest extends Model
         return $this->status === 'rejected';
     }
 
+    public function leavehistories()
+    {
+        return $this->hasMany(LeaveHistory::class);
+    }
+
   }
