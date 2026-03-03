@@ -43,6 +43,7 @@ class LeaveRequestController extends Controller
             'start_date'   => 'required|date|today_or_future',
             'end_date'     => 'required|date|after_or_equal:start_date',
             'reasons'      => 'nullable|string',
+            'destination'  => 'nullable|string',
         ], [
             'start_date.today_or_future' => 'Leave cannot start in the past.',
         ]);
@@ -81,6 +82,8 @@ class LeaveRequestController extends Controller
             'user_id'          => $user->id,
             'action'           => 'submitted',
             'remarks'          => $validated['reasons'] ?? 'No reason provided',
+            'created_at'      => now(),
+            'updated_at'=> now(),
         ]);
 
         return redirect()->route('leaves.showmy')->with('success', 'Leave request submitted successfully.');

@@ -121,8 +121,12 @@
                             <div class="timeline-content">
                                 <strong>{{ ucwords(str_replace('_',' ', $history->action)) }}</strong>
                                 <div class="small text-muted">
+                                    @if($history->created_at)
                                     {{ $history->created_at->format('d M Y H:i') }}
                                     ({{ $history->created_at->diffForHumans() }})
+                                    @else
+                                    N/A
+                                    @endif
                                     @if($history->user)
                                         - by {{ $history->user->fname ?? '' }} {{ $history->user->lname ?? '' }}
                                     @endif
