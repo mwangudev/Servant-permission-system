@@ -10,15 +10,6 @@ class LeaveRequest extends Model
 {
     use HasFactory;
 
-    // Mass assignable fields
-
-    /**
-     * Relationship: A leave request has many histories (timeline)
-     */
-    public function histories()
-    {
-        return $this->hasMany(LeaveHistory::class);
-    }
     protected $fillable = [
         'user_id',
         'request_type',
@@ -55,7 +46,26 @@ class LeaveRequest extends Model
     }
 
     /**
-     * Optional: Helper to check leave status
+     * Relationship: A leave request has many histories (timeline)
+     */
+    public function histories()
+    {
+        return $this->hasMany(LeaveHistory::class);
+    }
+
+    /**
+     * Accessor: Duration in days
+     */
+    public function getDurationInDaysAttribute()
+    {
+        if ($this->start_date && $this->end_date) {
+            return $this->start_date->diffInDays($this->end_date) + 1;
+        }
+        return null;
+    }
+
+    /**
+     * Helper methods to check leave status
      */
     public function isApproved()
     {
@@ -71,4 +81,5 @@ class LeaveRequest extends Model
     {
         return $this->status === 'rejected';
     }
-}
+
+  }

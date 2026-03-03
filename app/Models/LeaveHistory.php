@@ -22,6 +22,11 @@ class LeaveHistory extends Model
         return $this->belongsTo(User::class);
     }
 
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     public function leaveRequest()
     {
         return $this->belongsTo(LeaveRequest::class);

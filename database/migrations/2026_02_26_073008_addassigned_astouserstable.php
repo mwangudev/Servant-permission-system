@@ -11,22 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            // Add 'assigned_as' after the 'role' column
-            $table->string('assigned_as', 100)
-                  ->nullable()
-                  ->after('role')
-                  ->comment('e.g. HOD, Supervisor, HR, etc.');
+        if (Schema::hasTable('users')) {
+            Schema::table('users', function (Blueprint $table) {
+                // Add 'assigned_as' if it doesn't exist
+                if (!Schema::hasColumn('users', 'assigned_as')) {
+                    $table->string('assigned_as', 100)
+                          ->nullable()
+                          ->after('role')
+                          ->comment('e.g. HOD, Supervisor, HR, etc.');
+                }
 
-            // Replace or improve the existing 'status' column
-            // (assuming there is already a 'status' column)
-            // If there is NO existing 'status' column yet → use addColumn instead of modify
-            $table->enum('status', ['inactive', 'active', 'retired', 'deceased'])
-                  ->default('active')
-                  ->nullable(false)
-                  ->after('assigned_as')
-                  ->comment('User account status');
-        });
+                // Add 'status' only if it doesn't exist
+                if (!Schema::hasColumn('users', 'status')) {
+                    $table->enum('status', ['inactive', 'active', 'retired', 'deceased'])
+                          ->default('active')
+                          ->after('assigned_as')
+                          ->comment('User account status');
+                }
+            });
+        }
     }
 
     /**
@@ -35,9 +38,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Drop the columns we added (in reverse order)
-            $table->dropColumn('status');       // drop the new/modified status
-            $table->dropColumn('assigned_as');  // drop assigned_as
+            if (Schema::hasColumn('users', 'status')) {
+                $table->dropColumn('status');
+            }
+            if (Schema::hasColumn('users', 'assigned_as')) {
+                $table->dropColumn('assigned_as');
+            }
         });
     }
 };
