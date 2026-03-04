@@ -28,7 +28,7 @@
                     </thead>
 
                     <tbody>
-                        @forelse($leaveRequests as $leave)
+                        @forelse($onProgressLeaves as $leave)
                             <tr>
                                 <td>
                                     <span class="fw-semibold">
@@ -71,7 +71,7 @@
         </div>
 
         <div class="card-footer clearfix">
-            {{ $leaveRequests->links() }}
+            {{ $onProgressLeaves->links() }}
         </div>
     </div>
 </div>

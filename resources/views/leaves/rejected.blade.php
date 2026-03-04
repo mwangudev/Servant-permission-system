@@ -21,7 +21,7 @@
                 </thead>
 
                 <tbody>
-                    @foreach($leaveRequests as $leave)
+                    @foreach($rejectedLeaves as $leave)
                         <tr>
                             <td>
                                 <span class="fw-semibold">

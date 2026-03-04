@@ -22,7 +22,7 @@
                 </thead>
 
                 <tbody>
-                    @foreach($leaveRequests as $leave)
+                    @foreach($pendingLeaves as $leave)
                         <tr>
                             <td>
                                 <span class="fw-semibold">

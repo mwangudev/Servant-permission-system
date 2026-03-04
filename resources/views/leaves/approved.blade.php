@@ -21,7 +21,7 @@
                 </thead>
 
                 <tbody>
-                    @foreach($leaveRequests as $leave)
+                    @foreach($approvedLeaves as $leave)
                         <tr>
                             <td>
                                 <span class="fw-semibold">

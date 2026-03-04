@@ -218,6 +218,31 @@ class LeaveRequestController extends Controller
             ->with('success', 'Leave request rejected.');
     }
 
+
+    public function pending()
+    {
+        $pendingLeaves = LeaveRequest::where('status', 'pending')->with('user.department')->latest()->paginate(15);
+        return view('leaves.pending', compact('pendingLeaves'));
+    }
+
+    public function onprogress()
+    {
+        $onProgressLeaves = LeaveRequest::where('status', 'onprogress')->with('user.department')->latest()->paginate(15);
+        return view('leaves.onprogress', compact('onProgressLeaves'));
+    }
+
+    public function approved()
+    {
+        $approvedLeaves = LeaveRequest::where('status', 'approved')->with('user.department')->latest()->paginate(15);
+        return view('leaves.approved', compact('approvedLeaves'));
+    }
+
+    public function rejected()
+    {
+        $rejectedLeaves = LeaveRequest::where('status', 'rejected')->with('user.department')->latest()->paginate(15);
+        return view('leaves.rejected', compact('rejectedLeaves'));
+    }
+
     public function downloadPDF($id)
 {
     $leaveRequest = LeaveRequest::with('user.department')->findOrFail($id);
