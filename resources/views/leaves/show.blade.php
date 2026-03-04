@@ -16,20 +16,21 @@
 
     $status = $leaveRequest->status;
 
-    // Progress percentage
     $progress = match($status) {
         'submitted' => 25,
-        'pending'   => 50,
+        'pending'   => 60,
         'approved'  => 100,
         'rejected'  => 100,
         default     => 10
     };
 
     $canApproveOrReject = false;
-    if (auth()->user()->role === 'hod' && $status === 'submitted') {
+
+    if(auth()->user()->role === 'hod' && $status === 'submitted'){
         $canApproveOrReject = true;
     }
-    if (auth()->user()->role === 'admin' && $status === 'pending') {
+
+    if(auth()->user()->role === 'admin' && $status === 'pending'){
         $canApproveOrReject = true;
     }
 
@@ -40,9 +41,25 @@
 @endphp
 
 
+{{-- ALERTS --}}
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show">
+    {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show">
+    {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+
+
 <div class="card shadow border-0">
 
-    {{-- HEADER --}}
+{{-- HEADER --}}
 <div class="card-header bg-white">
     <div class="d-flex justify-content-between align-items-center">
 
@@ -55,8 +72,6 @@
         </div>
 
         <div class="d-flex align-items-center gap-2">
-
-            {{-- STATUS BADGE --}}
             <span class="badge
                 @if($status=='approved') bg-success
                 @elseif($status=='rejected') bg-danger
@@ -66,19 +81,16 @@
                 {{ strtoupper($status) }}
             </span>
 
-            {{-- DOWNLOAD PDF --}}
             @if($status === 'approved')
-                <a href="{{ route('leaves.download', $leaveRequest->id) }}"
-                   class="btn btn-outline-primary btn-sm">
-                    <i class="fas fa-file-pdf me-1"></i> Download PDF
-                </a>
+            <a href="{{ route('leaves.download', $leaveRequest->id) }}"
+               class="btn btn-outline-primary btn-sm">
+                Download PDF
+            </a>
             @endif
-
         </div>
-
     </div>
 
-    {{-- PROGRESS BAR --}}
+    {{-- PROGRESS --}}
     <div class="mt-3">
         <div class="progress" style="height:8px;">
             <div class="progress-bar
@@ -89,166 +101,192 @@
                 style="width: {{ $progress }}%">
             </div>
         </div>
-
-        <div class="d-flex justify-content-between small mt-2 text-muted">
-            <span>Submitted</span>
-            <span>HOD Review</span>
-            <span>Admin Approval</span>
-            <span>Completed</span>
-        </div>
     </div>
 </div>
 
 
-    {{-- BODY --}}
-    <div class="card-body">
-        <div class="row">
+{{-- BODY --}}
+<div class="card-body">
+<div class="row">
 
-            {{-- LEFT SIDE --}}
-            <div class="col-md-6 border-end">
+<div class="col-md-6 border-end">
 
-                <h6 class="fw-bold text-primary">Employee Information</h6>
-                <hr>
+<h6 class="fw-bold text-primary">Employee Information</h6>
+<hr>
 
-                <p><strong>Full Name:</strong>
-                    {{ $user ? trim($user->fname.' '.$user->mname.' '.$user->lname) : 'N/A' }}
-                </p>
+<p><strong>Full Name:</strong>
+{{ $user ? trim($user->fname.' '.$user->mname.' '.$user->lname) : 'N/A' }}
+</p>
 
-                <p><strong>Department:</strong> {{ $department?->name ?? 'N/A' }}</p>
-                <p><strong>Position:</strong> {{ $user?->assigned_as ?? 'N/A' }}</p>
-                <p><strong>Request Type:</strong> {{ ucfirst($leaveRequest->request_type) }}</p>
+<p><strong>Department:</strong> {{ $department?->name ?? 'N/A' }}</p>
+<p><strong>Position:</strong> {{ $user?->assigned_as ?? 'N/A' }}</p>
+<p><strong>Request Type:</strong> {{ ucfirst($leaveRequest->request_type) }}</p>
 
-                <h6 class="fw-bold text-primary mt-4">Leave Details</h6>
-                <hr>
+<h6 class="fw-bold text-primary mt-4">Leave Details</h6>
+<hr>
 
-                <p><strong>Start Date:</strong> {{ $leaveRequest->start_date?->format('d M Y') }}</p>
-                <p><strong>End Date:</strong> {{ $leaveRequest->end_date?->format('d M Y') }}</p>
-                <p><strong>Total Days:</strong> {{ $days }}</p>
-                <p><strong>Reason:</strong><br>{{ $leaveRequest->reasons }}</p>
-                <p><strong>Destination:</strong><br>{{ $leaveRequest->destination }}</p>
+<p><strong>Start Date:</strong> {{ $leaveRequest->start_date?->format('d M Y') }}</p>
+<p><strong>End Date:</strong> {{ $leaveRequest->end_date?->format('d M Y') }}</p>
+<p><strong>Total Days:</strong> {{ $days }}</p>
+<p><strong>Reason:</strong><br>{{ $leaveRequest->reasons }}</p>
+<p><strong>Destination:</strong><br>{{ $leaveRequest->destination }}</p>
 
-            </div>
-
-
-            {{-- RIGHT SIDE TIMELINE --}}
-            <div class="col-md-6">
-
-                <h6 class="fw-bold text-primary">Approval Timeline</h6>
-                <hr>
-
-                <div class="timeline-modern">
-
-                    @foreach($histories as $history)
-
-                        @php
-                            $color = 'primary';
-                            if(str_contains($history->action,'approved')) $color='success';
-                            if(str_contains($history->action,'rejected')) $color='danger';
-                        @endphp
-
-                        <div class="timeline-modern-item">
-                            <div class="timeline-icon bg-{{ $color }}">
-                                <i class="fas fa-check text-white"></i>
-                            </div>
-
-                            <div class="timeline-card shadow-sm">
-                                <div class="fw-bold">
-                                    {{ ucwords(str_replace('_',' ', $history->action)) }}
-                                </div>
-
-                                <small class="text-muted">
-                                    {{ $history->created_at?->format('d M Y H:i') }}
-                                    ({{ $history->created_at?->diffForHumans() }})
-                                    @if($history->user)
-                                        - by {{ $history->user->fname }} {{ $history->user->lname }}
-                                        ({{ strtoupper($history->user->role) }})
-                                    @endif
-                                </small>
-
-                                @if($history->remarks)
-                                    <div class="mt-2">
-                                        <strong>Remarks:</strong>
-                                        <div class="text-muted">{{ $history->remarks }}</div>
-                                    </div>
-                                @endif
-
-                            </div>
-                        </div>
-
-                    @endforeach
-
-                </div>
-
-            </div>
-        </div>
-    </div>
+</div>
 
 
-    {{-- FOOTER --}}
-    <div class="card-footer text-end bg-white">
+{{-- TIMELINE --}}
+<div class="col-md-6">
+<h6 class="fw-bold text-primary">Approval Timeline</h6>
+<hr>
 
-        @if($canApproveOrReject)
-            <button class="btn btn-success btn-sm me-2" data-bs-toggle="modal" data-bs-target="#approveModal">
-                Approve
-            </button>
+@foreach($histories as $history)
 
-            <button class="btn btn-danger btn-sm me-2" data-bs-toggle="modal" data-bs-target="#rejectModal">
-                Reject
-            </button>
-        @endif
+@php
+$color = 'primary';
+if(str_contains($history->action,'approved')) $color='success';
+if(str_contains($history->action,'rejected')) $color='danger';
+@endphp
 
-        <a href="{{ route('leaves.index') }}" class="btn btn-secondary btn-sm">
-            Back
-        </a>
-    </div>
+<div class="mb-3 border-start border-4 border-{{ $color }} ps-3">
+<strong>{{ ucwords(str_replace('_',' ', $history->action)) }}</strong><br>
+<small class="text-muted">
+{{ $history->created_at?->format('d M Y H:i') }}
+@if($history->user)
+- {{ $history->user->fname }} {{ $history->user->lname }}
+({{ strtoupper($history->user->role) }})
+@endif
+</small>
 
+@if($history->remarks)
+<div class="mt-1 text-muted">
+<strong>Remarks:</strong> {{ $history->remarks }}
+</div>
+@endif
+</div>
+
+@endforeach
+
+</div>
 </div>
 </div>
 
 
-{{-- MODERN TIMELINE STYLE --}}
-@push('css')
-<style>
+{{-- FOOTER --}}
+<div class="card-footer text-end bg-white">
 
-.timeline-modern {
-    position: relative;
-    padding-left: 40px;
-}
+@if($canApproveOrReject)
+<button class="btn btn-success btn-sm me-2"
+        data-bs-toggle="modal"
+        data-bs-target="#approveModal">
+Approve
+</button>
 
-.timeline-modern::before {
-    content: '';
-    position: absolute;
-    left: 15px;
-    top: 0;
-    width: 3px;
-    height: 100%;
-    background: #dee2e6;
-}
+<button class="btn btn-danger btn-sm me-2"
+        data-bs-toggle="modal"
+        data-bs-target="#rejectModal">
+Reject
+</button>
+@endif
 
-.timeline-modern-item {
-    position: relative;
-    margin-bottom: 30px;
-}
+<a href="{{ route('leaves.index') }}" class="btn btn-secondary btn-sm">
+Back
+</a>
 
-.timeline-icon {
-    position: absolute;
-    left: -25px;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
+</div>
+</div>
+</div>
 
-.timeline-card {
-    background: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    border-left: 4px solid #0d6efd;
-}
 
-</style>
-@endpush
+{{-- APPROVE MODAL --}}
+<div class="modal fade" id="approveModal" tabindex="-1">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+
+<form method="POST" action="{{ route('leaves.approve', $leaveRequest->id) }}">
+@csrf
+@method('PATCH')
+<div class="modal-header bg-success text-white">
+<h5 class="modal-title">Approve Leave</h5>
+<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+<p>
+@if(auth()->user()->role === 'hod')
+This will move the request to <strong>Pending (Admin Review)</strong>.
+@else
+This will fully approve the leave request.
+@endif
+</p>
+
+<div class="mb-3">
+<label class="form-label">Remarks (Optional)</label>
+<textarea name="remarks"
+          class="form-control"
+          rows="4"
+          maxlength="1500"
+          placeholder="Enter approval remarks...">{{ old('remarks') }}</textarea>
+</div>
+</div>
+
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+Cancel
+</button>
+<button type="submit" class="btn btn-success">
+Confirm Approval
+</button>
+</div>
+
+</form>
+
+</div>
+</div>
+</div>
+
+
+{{-- REJECT MODAL --}}
+<div class="modal fade" id="rejectModal" tabindex="-1">
+<div class="modal-dialog modal-dialog-centered">
+<div class="modal-content">
+
+<form method="POST" action="{{ route('leaves.reject', $leaveRequest->id) }}">
+@csrf
+@method('PATCH')
+
+<div class="modal-header bg-danger text-white">
+<h5 class="modal-title">Reject Leave</h5>
+<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+<p class="text-danger">
+This action will permanently reject this leave request.
+</p>
+
+<div class="mb-3">
+<label class="form-label">Rejection Reason (Optional)</label>
+<textarea name="remarks"
+          class="form-control"
+          rows="4"
+          maxlength="1500"
+          placeholder="Enter rejection reason...">{{ old('remarks') }}</textarea>
+</div>
+</div>
+
+<div class="modal-footer">
+<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+Cancel
+</button>
+<button type="submit" class="btn btn-danger">
+Confirm Rejection
+</button>
+</div>
+
+</form>
+
+</div>
+</div>
+</div>
 
 @endsection
