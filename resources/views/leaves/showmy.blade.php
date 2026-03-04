@@ -87,7 +87,7 @@
                             {{-- 5. Report --}}
                             <td class="text-center">
                                 @if(!empty($leave->report_path))
-                                    <a href="{{ route('leaves.downloadPDF', $leave->id) }}"
+                                    <a href="{{ route('leaves.download', $leave->id) }}"
                                        target="_blank"
                                        class="btn btn-sm btn-outline-info"
                                        title="Download Report">

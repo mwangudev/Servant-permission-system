@@ -33,6 +33,7 @@ class LeaveRequestController extends Controller
 
     public function create()
     {
+
         return view('leaves.create');
     }
 
@@ -47,6 +48,12 @@ class LeaveRequestController extends Controller
         ], [
             'start_date.today_or_future' => 'Leave cannot start in the past.',
         ]);
+
+        // Check if user has a signature
+        if (empty($user->signature)) {
+            return redirect()->route('profile.edit')
+                ->with('error', 'You must upload a digital signature before approving leaves.');
+        }
 
         $days = Carbon::parse($validated['start_date'])
             ->diffInDays(Carbon::parse($validated['end_date'])) + 1;
@@ -270,4 +277,21 @@ public function showMyLeave(Request $request)
 
     return view('leaves.showmy', compact('myleaves'));
 }
+
+    public function staff(){
+        $staff = Auth::user();
+
+        if ($staff->role === 'admin') {
+            $leaveRequests = LeaveRequest::with('user.department')->latest()->paginate(15);
+        } elseif ($staff->role === 'hod') {
+            $leaveRequests = LeaveRequest::whereHas('user', fn($q) => $q->where('department_id', $staff->department_id))
+                ->with('user.department')->latest()->paginate(15);
+        } else {
+            abort(403, 'Unauthorized');
+        }
+
+        return view('leaves.staff', compact('leaveRequests'));
+    }
+
+
 }

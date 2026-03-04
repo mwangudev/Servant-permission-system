@@ -10,10 +10,14 @@
     <div class="row">
         <div class="col-md-8 offset-md-2">
 
+            
+
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title">Create Leave Request</h3>
                 </div>
+
+
 
                 <form action="{{ route('leaves.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf

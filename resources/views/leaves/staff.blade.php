@@ -18,7 +18,7 @@
                 </thead>
 
                 <tbody>
-                    @forelse($staff as $user)
+                    @forelse($leaveRequests as $user)
                         <tr>
                             <td>{{ $user->fname }} {{ $user->mname }} {{ $user->lname }}</td>
 

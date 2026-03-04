@@ -102,7 +102,7 @@
                         @else
                             <div class="alert alert-warning mt-2">
                                 No digital signature uploaded.
-                                <a href="{{ route('profile.settings') }}" class="ml-2">
+                                <a href="{{ route('profile.edit') }}" class="ml-2">
                                     Upload Now
                                 </a>
                             </div>
